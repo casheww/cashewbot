@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import json, botdb, aiosqlite
 from datetime import datetime as dt
+import aiohttp
 
 
 # - - - - - -
@@ -44,7 +45,6 @@ client = commands.Bot(command_prefix=get_prefix)
 
 client.remove_command('help')
 
-
 @client.event
 async def on_ready():
     """
@@ -56,6 +56,7 @@ async def on_ready():
     if not hasattr(client, 'db'):
         client.db = await aiosqlite.connect('db/cashewbot.db')
         client.start_time = dt.now()
+        client.web = aiohttp.ClientSession()
 
     out = '========== READY ==========\n' \
         f'\tNAME :\t\t{str(client.user)}\n' \
@@ -68,7 +69,7 @@ async def on_ready():
 @client.command()
 @commands.is_owner()
 async def load(ctx, ext_name):
-    client.load_extension(ext_name)
+    client.load_extension(f"cogs.{ext_name}")
 
     await ctx.message.add_reaction('\U00002705')
     with open('log.txt', 'a+') as f:
@@ -78,7 +79,7 @@ async def load(ctx, ext_name):
 @client.command()
 @commands.is_owner()
 async def reload(ctx, ext_name):
-    client.reload_extension(ext_name)
+    client.reload_extension(f"cogs.{ext_name}")
 
     await ctx.message.add_reaction('\U00002705')
     with open('log.txt', 'a+') as f:
@@ -88,17 +89,17 @@ async def reload(ctx, ext_name):
 @client.command()
 @commands.is_owner()
 async def unload(ctx, ext_name):
-    client.unload_extension(ext_name)
+    client.unload_extension(f"cogs.{ext_name}")
 
     await ctx.message.add_reaction('\U00002705')
     with open('log.txt', 'a+') as f:
         f.write(f'--- Loaded {ext_name}')
 
 
-extensions = ['eh', 'help', 'devtools', 'server', 'utilities']
+extensions = ['eh', 'help', 'devtools', 'servertools', 'utilities']
 for extension in extensions:
     try:
-        client.load_extension(f'{extension}')
+        client.load_extension(f'cogs.{extension}')
     except Exception as e:
         exc = "{}: {}".format(type(extension).__name__, e)
         print("Failed to load extension {}\n{}".format(extension, e))
