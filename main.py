@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands
 import json, botdb, aiosqlite
 from datetime import datetime as dt
@@ -13,6 +12,8 @@ import aiohttp
 #
 #       Uh oh, Natasha's 'robot.bd' is also getting
 #       a reboot. This is a bot war. I'm doomed.
+#
+#       OH, Tom's also doing it now fdkjfkjsfldjkl
 #
 #       Sole developer:
 #           Github  : https://github.com/casheww
@@ -96,12 +97,21 @@ async def unload(ctx, ext_name):
         f.write(f'--- Loaded {ext_name}')
 
 
-extensions = ['eh', 'help', 'devtools', 'servertools', 'utilities']
+extensions = ['announce',
+              'devtools',
+              'eh',
+              'fun',
+              'help',
+              'nasa',
+              'servertools',
+              'translate',
+              'utilities']
 for extension in extensions:
     try:
         client.load_extension(f'cogs.{extension}')
     except Exception as e:
-        exc = "{}: {}".format(type(extension).__name__, e)
-        print("Failed to load extension {}\n{}".format(extension, e))
+        exc = f"{type(extension).__name__}: {e}"
+        print(f"Failed to load extension {extension}\n{e}")
+
 
 client.run(bot_token)

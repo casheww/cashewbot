@@ -14,6 +14,7 @@ class Help(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+
     @commands.command(description="Returns a helpful message!")
     async def help(self, ctx, help_call=None):
         embed = discord.Embed(colour=ctx.guild.me.color)

@@ -15,7 +15,7 @@ class Utilities(commands.Cog):
 
     @commands.command(description="Returns the latency of the bot.")
     async def ping(self, ctx):
-        await ctx.send(f"Ping: `{round(self.client.latency*1000)}ms`")
+        await ctx.send(f"Pong! `{round(self.client.latency*1000)}ms`")
 
 
     @commands.command(description="Returns a list of all of the loaded cogs.")
