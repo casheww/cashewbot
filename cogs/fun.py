@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from custom_checks import *
+import custom_checks
 
 
 class Fun(commands.Cog):
@@ -9,7 +9,7 @@ class Fun(commands.Cog):
 
 
     @commands.command(hidden=True)
-    @is_celery()
+    @custom_checks.is_celery()
     async def vore(self, ctx, member: discord.Member):
         await ctx.send(f"{member.mention} was vored by {ctx.author.name}.")
 
@@ -18,6 +18,11 @@ class Fun(commands.Cog):
     async def vore_eh(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             await ctx.send("you are not worthy")
+
+
+    @commands.command(hidden=True)
+    async def casheww(self, ctx):
+        await ctx.send("stupid stupid stupid")
 
 
 def setup(client):

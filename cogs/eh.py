@@ -1,5 +1,5 @@
 from discord.ext import commands
-import traceback
+import traceback as tb
 
 
 class EH(commands.Cog):
@@ -10,7 +10,7 @@ class EH(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
 
-        if hasattr(ctx.command, 'on_error'):
+        if hasattr(ctx.command, 'on_error') or hasattr(ctx, 'handled_locally'):
             return
 
         error = getattr(error, 'original', error)
@@ -19,7 +19,7 @@ class EH(commands.Cog):
             f.write(f"""--- {error}
             {ctx.author} - {ctx.author.id}
             {ctx.message.content}
-            {traceback.print_exception(type(error), error, error.__traceback__)}\n\n""")
+            {tb.extract_tb(error.__traceback__)}\n\n""")
 
         em_dict = {
             commands.ExtensionNotFound: "The extension was not found.",
@@ -32,16 +32,23 @@ class EH(commands.Cog):
             commands.UserInputError: "Hmm... Something you entered wasn't quite right. Try `help [command]`.",
             commands.NotOwner: "Only the owner of the bot can use this command.",
             commands.NoPrivateMessage: "This command can't be used outside of a server.",
-            commands.CheckFailure: "The required checks for this command were not met."
         }
 
         await ctx.message.add_reaction('\U0000274e')
 
-        for e_name in em_dict:
-            if isinstance(error, e_name):
-                return await ctx.send(em_dict[e_name])
+        for e in em_dict:
+            if isinstance(error, e):
+                return await ctx.send(em_dict[e])
 
-        await ctx.send(error, delete_after=10)
+        if isinstance(error, commands.CheckFailure):
+            if hasattr(ctx, 'custom_check_fail'):
+                msg = ctx.custom_check_fail
+            else:
+                msg = "The requirements to run this command were not satisfied."
+            return await ctx.send(msg)
+
+        await ctx.send(tb.extract_tb(error.__traceback__), delete_after=10)
+        raise error
 
 
 def setup(client):

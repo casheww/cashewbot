@@ -1,4 +1,5 @@
 from discord.ext.commands import check
+import botdb
 
 
 def is_celery():

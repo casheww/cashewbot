@@ -53,8 +53,6 @@ async def get_announce(db, guild_id: int):
 
 
 async def get_all_announce(db):
-    """ returns list: [guild_id, wh_url, wh_id] """
-
     async with db.cursor() as c:
         await c.execute('SELECT * FROM announce')
         data = await c.fetchall()
@@ -80,3 +78,30 @@ async def delete_announce(db, guild_id):
     await db.commit()
 
 
+async def get_bdays(db, guild_id: int):
+    async with db.cursor() as c:
+        await c.execute('SELECT * FROM bday WHERE guild=?', [guild_id])
+        data = await c.fetchall()
+
+        try:
+            return json.loads(data[0][1])
+        except IndexError:
+            return None
+
+
+async def dump_bdays(db, guild_id: int, data: str):
+    base_data = await get_bdays(db, guild_id)
+
+    async with db.cursor() as c:
+        if not isinstance(base_data, type(None)):
+            await c.execute('UPDATE bday SET data=? WHERE guild=?;', [data, guild_id])
+
+        else:
+            await c.execute('INSERT INTO bday VALUES (?, ?)', [guild_id, data])
+    await db.commit()
+
+
+async def delete_bdays(db, guild_id: int):
+    async with db.cursor() as c:
+        await c.execute('DELETE FROM bday WHERE guild=?;', [guild_id])
+    await db.commit()

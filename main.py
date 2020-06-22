@@ -31,9 +31,8 @@ with open('_keys.gitignore') as file:
 async def get_prefix(clnt, message):
     default_prefix = '##'
 
-    guild_info = await botdb.get_guild_data(clnt.db, message.guild.id)
-
     if message.guild:
+        guild_info = await botdb.get_guild_data(clnt.db, message.guild.id)
         try:
             return guild_info['info']['prefix']
         except (KeyError, TypeError):
@@ -74,7 +73,7 @@ async def load(ctx, ext_name):
 
     await ctx.message.add_reaction('\U00002705')
     with open('log.txt', 'a+') as f:
-        f.write(f'--- Loaded {ext_name}')
+        f.write(f'--- Loaded {ext_name}\n')
 
 
 @client.command()
@@ -84,7 +83,7 @@ async def reload(ctx, ext_name):
 
     await ctx.message.add_reaction('\U00002705')
     with open('log.txt', 'a+') as f:
-        f.write(f'--- Loaded {ext_name}')
+        f.write(f'--- Loaded {ext_name}\n')
 
 
 @client.command()
@@ -94,10 +93,11 @@ async def unload(ctx, ext_name):
 
     await ctx.message.add_reaction('\U00002705')
     with open('log.txt', 'a+') as f:
-        f.write(f'--- Loaded {ext_name}')
+        f.write(f'--- Loaded {ext_name}\n')
 
 
 extensions = ['announce',
+              'bday',
               'devtools',
               'eh',
               'fun',
