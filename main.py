@@ -15,6 +15,11 @@ import aiohttp
 #
 #       OH, Tom's also doing it now fdkjfkjsfldjkl
 #
+#       Please don't mind my inconsistent styling.
+#       I know there are conflicting "" and '',
+#       I'm just way too lazy to change it all to
+#       double quotes.
+#
 #       Sole developer:
 #           Github  : https://github.com/casheww
 #           Discord : @casheww#7881 [444857307843657739]
@@ -104,6 +109,7 @@ extensions = ['announce',
               'help',
               'nasa',
               'servertools',
+              'stat_handler',
               'translate',
               'utilities']
 for extension in extensions:

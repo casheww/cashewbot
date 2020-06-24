@@ -77,7 +77,6 @@ class Birthdays(commands.Cog):
         start = int(dt.datetime.today().strftime("%j"))-1
         end = start + 7
 
-        ordered = sorted(data, key=data.get)
         embed = discord.Embed(colour=discord.Colour.red(),
                               title=f"Upcoming birthdays! :tada:")
         embed.set_author(name=ctx.guild.name)
