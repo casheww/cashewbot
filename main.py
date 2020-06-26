@@ -10,7 +10,7 @@ import aiohttp
 #       rapid and wonderful new development of
 #       Discord bot 'Geo', produced by DGTILL.
 #
-#       Uh oh, Natasha's 'robot.bd' is also getting
+#       Uh oh, Natasha's bot is also getting
 #       a reboot. This is a bot war. I'm doomed.
 #
 #       OH, Tom's also doing it now fdkjfkjsfldjkl
@@ -46,9 +46,7 @@ async def get_prefix(clnt, message):
     return default_prefix
 
 
-client = commands.Bot(command_prefix=get_prefix)
-
-client.remove_command('help')
+client = commands.Bot(command_prefix=get_prefix, case_insensitive=True)
 
 @client.event
 async def on_ready():
@@ -106,12 +104,13 @@ extensions = ['announce',
               'devtools',
               'eh',
               'fun',
-              'help',
+              'helpnew',
               'nasa',
               'servertools',
               'stat_handler',
               'translate',
-              'utilities']
+              'utilities',
+              'weather']
 for extension in extensions:
     try:
         client.load_extension(f'cogs.{extension}')
