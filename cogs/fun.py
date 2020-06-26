@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import custom_checks
+import random
 
 
 class Fun(commands.Cog):
@@ -23,6 +24,18 @@ class Fun(commands.Cog):
     @commands.command(hidden=True)
     async def casheww(self, ctx):
         await ctx.send("stupid stupid stupid")
+
+
+    @commands.command(description="Generates a random keysmash... Cashew style",
+                      aliases=["ks"])
+    async def keysmash(self, ctx):
+        letters = ["s", "d", "f", "j", "k"]
+        keysmash = ""
+
+        for i in range(0, random.randint(8, 14)):
+            keysmash += random.choice(letters)
+
+        await ctx.send(keysmash)
 
 
 def setup(client):
