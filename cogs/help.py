@@ -117,7 +117,7 @@ class CustomHelp(commands.HelpCommand):
                     inline=False)
 
         if group.aliases:
-            e.set_footer(text=f"Aliases: {group.aliases}")
+            e.set_footer(text=f"Aliases: [{', '.join([a for a in group.aliases])}]")
 
         await destination.send(embed=e)
 
