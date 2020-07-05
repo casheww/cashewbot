@@ -7,16 +7,16 @@ import json
 # yoinked half of this code from nasa.py (no regrets)
 
 # api key used is from https://openweathermap.org
-with open ('_keys.gitignore') as f:
+with open('_keys.gitignore') as f:
     weather_key = json.load(f)['weather']
 
 class Weather(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(description='Returns weather information based on city given.')
-
-    async def getweather(self, ctx, weather_city):
+    @commands.command(description='Returns weather information based on city given.',
+                      aliases=['getweather'])
+    async def get_weather(self, ctx, weather_city):
         # fuck out of here with those imperial measurements :flag_gb:
         headers = {'q': weather_city, 'units': 'metric', 'appid': weather_key}
 
@@ -24,7 +24,7 @@ class Weather(commands.Cog):
             res = await req.json()
 
         e = discord.Embed(title='OpenWeatherMap - Current Weather Data',
-                          colour = discord.Colour.teal(),
+                          colour=discord.Colour.teal(),
                           # this whole line just looks terrible
                           description=('Current Temperature for {}: '+str(res['main']['temp'])+'°C').format(weather_city.title()))
 
