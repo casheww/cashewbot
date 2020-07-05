@@ -10,7 +10,8 @@ class Announcements(commands.Cog):
 
 
     @commands.command(description="Toggle CashewBot progress and status announcements in "
-                                  "the current channel. Requires 'Administrator'")
+                                  "the current channel.",
+                      brief="Administrator permission required.")
     @commands.has_guild_permissions(administrator=True)
     async def toggle_announce(self, ctx):
         announce_data = await botdb.get_announce(self.client.db, ctx.guild.id)

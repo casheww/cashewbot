@@ -57,9 +57,9 @@ class Translate(commands.Cog):
     @commands.command(description="Use in a channel to take in messages in another language to be translated. "
                                   "Translations to the target language are output to the out_channel. "
                                   "Compatible langs: "
-                                  "https://tech.yandex.com/translate/doc/dg/concepts/api-overview-docpage/#api-overview__languages . "
-                                  "Requires 'Manage Server'.")
-    @commands.has_permissions(manage_guild=True)
+                                  "https://tech.yandex.com/translate/doc/dg/concepts/api-overview-docpage/#api-overview__languages .",
+                      brief="Manage Server permission Required.")
+    @commands.has_guild_permissions(manage_guild=True)
     async def toggle_lang_tunnel(self, ctx, out_channel: discord.TextChannel = None, target_language: str = 'en'):
         guild_info = await botdb.get_guild_data(self.client.db, ctx.guild.id)
 

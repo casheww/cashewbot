@@ -9,7 +9,8 @@ class Birthdays(commands.Cog):
         self.client = client
 
 
-    @commands.group()
+    @commands.group(description="Group containing bday commands.",
+                    brief="Subcommands can only be used in servers")
     @commands.guild_only()
     async def bday(self, ctx):
         ...
@@ -26,7 +27,8 @@ class Birthdays(commands.Cog):
 
 
     @bday.command(description="Toggle birthday functionality in this server. "
-                              "Off by default. Requires 'Manage Server'.")
+                              "Off by default.",
+                  brief="Manage Server permission required.")
     @commands.has_guild_permissions(manage_guild=True)
     async def toggle(self, ctx):
         base_data = await botdb.get_bdays(self.client.db, ctx.guild.id)

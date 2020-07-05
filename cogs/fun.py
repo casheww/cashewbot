@@ -26,7 +26,7 @@ class Fun(commands.Cog):
         await ctx.send("stupid stupid stupid")
 
 
-    @commands.command(description="Generates a random keysmash... Cashew style",
+    @commands.command(description="Generates a random keysmash... Cashew style.",
                       aliases=["ks"])
     async def keysmash(self, ctx):
         letters = ["s", "d", "f", "j", "k"]

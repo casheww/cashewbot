@@ -1,96 +1,178 @@
 import discord
 from discord.ext import commands
-from main import get_prefix
+import inspect
 
 
-hidden_cogs = ['Dev', 'EH']
+hidden_cogs = ['Dev', 'EH', 'StatH', 'Help']
 
-def command_plural(count):
-    if count == 1:
-        return 'command'
+
+def plural_command(number: int):
+    if number == 1:
+        return "command"
     else:
-        return 'commands'
+        return "commands"
+
+def get_help_colour(ctx):
+    """ guild.me is none outside of guild, so DM catch is required. """
+    if ctx.guild:
+        return ctx.guild.me.colour
+    else:
+        return discord.Colour.teal()
+
+
+def get_cog(cog_list, cog_name):
+    """ Finds cog name in its own case from any casing.
+        Just makes it easier for users to get help
+        (especially with 'NASA' and 'ServerTools').
+        This originally-cased name is send to bot.get_cog() later. """
+    for c in cog_list:
+        if cog_name.lower() == c.lower():
+            return c
+    return None
+
+
+class CustomHelp(commands.HelpCommand):
+
+    async def send_bot_help(self, mapping):
+
+        ctx = self.context
+        client = ctx.bot
+        destination = self.get_destination()
+
+        e = discord.Embed(colour=get_help_colour(ctx),
+                          title=f"{client.user.name} -- Bot help",
+                          description=client.description)
+
+        for cog in mapping:
+            if cog and cog.qualified_name not in hidden_cogs:
+                cog_size = len(mapping[cog])
+
+                for command in mapping[cog]:
+                    if command.hidden:
+                        cog_size -= 1
+
+                e.add_field(name=f"{cog.qualified_name}", value=f"{cog_size} {plural_command(cog_size)}")
+
+        e.set_footer(text="Try `help [category]` for a list of the category's commands.")
+
+        await destination.send(embed=e)
+
+
+    async def send_cog_help(self, cog):
+
+        destination = self.get_destination()
+        if cog.qualified_name in hidden_cogs:
+            return await commands.HelpCommand.send_error_message(self,
+                                                                 f'No command called "{cog.qualified_name}" found.')
+
+        ctx = self.context
+
+        e = discord.Embed(colour=get_help_colour(ctx),
+                          title=cog.qualified_name,
+                          description="*(category)*")
+
+        cmd_list = await commands.HelpCommand.filter_commands(self, cog.get_commands())
+        for command in cmd_list:
+            e.add_field(name=f"{command.qualified_name}", value=f"{command.description.split('.')[0]}.")
+
+        e.set_footer(text="Try `help [command/group]` for a more details.")
+
+        await destination.send(embed=e)
+
+
+    async def send_command_help(self, command):
+
+        ctx = self.context
+        destination = self.get_destination()
+
+        if not command.parent:
+            sig = [command.name, command.signature]
+        else:
+            sig = [command.full_parent_name, command.name, command.signature]
+
+        e = discord.Embed(colour=get_help_colour(ctx),
+                          title=command.qualified_name,
+                          description=f"*(command)*\n{command.description}")
+        e.add_field(name="Syntax", value=f"`{self.clean_prefix}{' '.join(sig)}`", inline=False)
+
+        if command.brief:
+            e.add_field(name="User conditions", value=f"{command.brief}", inline=False)
+
+        if command.aliases:
+            e.set_footer(text=f"Aliases: [{', '.join([a for a in command.aliases])}]")
+
+        await destination.send(embed=e)
+
+
+    async def send_group_help(self, group):
+
+        ctx = self.context
+        destination = self.get_destination()
+
+        e = discord.Embed(colour=get_help_colour(ctx),
+                          title=group.qualified_name,
+                          description=f"*(command group)*\n{group.description}")
+        e.add_field(name="User conditions", value=f"{group.brief}", inline=False)
+        e.add_field(name="Subcommands", value=f"`{'`, `'.join([c.qualified_name for c in group.commands])}`",
+                    inline=False)
+
+        if group.aliases:
+            e.set_footer(text=f"Aliases: {group.aliases}")
+
+        await destination.send(embed=e)
+
+
+    async def command_callback(self, ctx, *, command=None):
+        """ Mostly the same as the original, but modified to use
+            custom get_cog for case-insensitivity in cog searching.
+            For that reason please excuse the bot/client naming inconsistency dkjfjkdf."""
+
+        await self.prepare_help_command(ctx, command)
+        bot = ctx.bot
+
+        if command is None:
+            mapping = self.get_bot_mapping()
+            return await self.send_bot_help(mapping)
+
+        cog_name = get_cog(bot.cogs, command)
+        if cog_name is not None:
+            cog = bot.get_cog(cog_name)
+            return await self.send_cog_help(cog)
+
+        maybe_coro = discord.utils.maybe_coroutine
+
+        keys = command.split(' ')
+        cmd = bot.all_commands.get(keys[0])
+        if cmd is None or cmd.hidden:
+            string = await maybe_coro(self.command_not_found, self.remove_mentions(keys[0]))
+            return await self.send_error_message(string)
+
+        for key in keys[1:]:
+            try:
+                found = cmd.all_commands.get(key)
+            except AttributeError:
+                cmd_name = self.remove_mentions(key)
+                return await commands.HelpCommand.send_error_message(self, f'No command called "{cmd_name}" found.')
+            else:
+                if found is None:
+                    cmd_name = self.remove_mentions(key)
+                    return await commands.HelpCommand.send_error_message(self, f'No command called "{cmd_name}" found.')
+                cmd = found
+
+        if isinstance(cmd, commands.Group):
+            return await self.send_group_help(cmd)
+        else:
+            return await self.send_command_help(cmd)
+
+
+    async def send_error_message(self, error):
+        await self.get_destination().send(error)
 
 
 class Help(commands.Cog):
     def __init__(self, client):
-        self.client = client
-
-
-    @commands.command(description="Returns a helpful message!")
-    async def help(self, ctx, *, help_call=None):
-        if ctx.guild:
-            embed = discord.Embed(colour=ctx.guild.me.color)
-        else:
-            embed = discord.Embed(colour=discord.Colour.purple())
-
-        # shows all cogs - ultimate level
-        if not help_call:
-            outstr = ""
-            for cog in self.client.cogs:
-                cog_commands = self.client.cogs[cog].get_commands()
-
-                command_count = len(cog_commands)
-                for c in cog_commands:
-                    if c.hidden:
-                        command_count -= 1
-
-                if command_count >= 1:
-                    outstr += f"**{cog}** - {command_count} {command_plural(command_count)}\n"
-
-            embed.set_author(name="CashewBot - Help")
-            embed.add_field(name="Command Categories", value=outstr)
-            embed.set_footer(text="Try `help category-name`!")
-            return await ctx.send(embed=embed)
-
-        # cog level
-        for cog in self.client.cogs:
-            if cog not in hidden_cogs and help_call.lower() == cog.lower():
-                cog_commands = self.client.cogs[cog].get_commands()
-                outstr = ""
-
-                for c in cog_commands:
-                    if not c.hidden:
-                        outstr += f"**{c.qualified_name}** - {c.description}\n\n"
-
-                embed.set_author(name=f"CashewBot - {cog} Category")
-                embed.add_field(name="Commands", value=outstr)
-                embed.set_footer(text="Try `help command-name`!")
-                return await ctx.send(embed=embed)
-
-        # command level
-        for command in self.client.commands:
-            if help_call == command.qualified_name or help_call in command.aliases:
-
-                if not command.hidden:
-
-                    embed.add_field(name="Parent Category", value=f"{command.cog.qualified_name}", inline=False)
-
-                    if not isinstance(command, commands.Group):
-                        embed.set_author(name=f"CashewBot - {command.qualified_name} Command")
-                        embed.add_field(name="Syntax",
-                                        value=f"`{await get_prefix(self.client, ctx.message)}"
-                                              f"{command.name} {command.signature}`")
-                        if command.aliases:
-                            embed.add_field(name="Aliases", value=command.aliases, inline=False)
-                        embed.set_footer(text=command.description)
-                        return await ctx.send(embed=embed)
-
-                    else:
-                        embed.set_author(name=f"CashewBot - {command.qualified_name} Command Group")
-
-                        outstr = ""
-                        for sub in command.commands:
-                            outstr += f"**{sub.qualified_name}** - {sub.description}\n\n"
-
-                        embed.add_field(name="Subcommands", value=outstr)
-                        return await ctx.send(embed=embed)
-
-
-        # fallback for no help match
-        embed.set_author(name="CashewBot - ???")
-        embed.add_field(name="Sorry...", value=f"I couldn't find anything matching {help_call}...")
-        await ctx.send(embed=embed)
+        client.help_command = CustomHelp()      # overwrites default help command b/c yucky
+        client.help_command.cog = self
 
 
 def setup(client):
