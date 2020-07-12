@@ -87,6 +87,8 @@ class Translate(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if not message.guild:
+            return
 
         guild_info = await botdb.get_guild_data(self.client.db, message.guild.id)
 
