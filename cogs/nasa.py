@@ -33,11 +33,18 @@ class NASA(commands.Cog):
             j = await r.json()
 
         try:
-            e = discord.Embed(title="NASA - Astronomy Picture of the Day",
-                              colour=discord.Colour.dark_purple(),
-                              description=f"{j['explanation'].split('.')[0]}.")
-            e.add_field(name=j['date'], value=j['title'])
-            e.set_image(url=j['hdurl'])
+            if j['media_type'] == 'video':
+                e = discord.Embed(title="NASA - Astronomy Picture of the Day",
+                                  colour=discord.Colour.dark_purple(),
+                                  description=f"{j['explanation'].split('.')[0]}.")
+                e.add_field(name="Today's picture is a video...", value=f"[Click Me]({j['url']})")
+
+            else:
+                e = discord.Embed(title="NASA - Astronomy Picture of the Day",
+                                  colour=discord.Colour.dark_purple(),
+                                  description=f"{j['explanation'].split('.')[0]}.")
+                e.add_field(name=j['date'], value=j['title'])
+                e.set_image(url=j['hdurl'])
         except KeyError:
             await ctx.send("Sorry, that date is out of the accepted range.")
             return
