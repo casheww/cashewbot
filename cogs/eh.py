@@ -10,7 +10,8 @@ class EH(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
 
-        if hasattr(ctx.command, 'on_error') or hasattr(ctx, 'handled_locally'):
+        if hasattr(ctx.command, 'on_error') or hasattr(ctx, 'handled_locally') or \
+                hasattr(ctx.command.parent, 'on_error'):
             return
 
         error = getattr(error, 'original', error)
