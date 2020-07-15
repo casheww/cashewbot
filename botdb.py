@@ -19,6 +19,15 @@ async def get_guild_data(db, guild_id: int):
             return []
 
 
+async def get_all_guilds(db):
+
+    async with db.cursor() as c:
+        await c.execute('SELECT * FROM guilds')
+        data = await c.fetchall()
+
+        return data
+
+
 async def dump_guild_data(db, guild_id: int, info: str):
     data = await get_guild_data(db, guild_id)
 
