@@ -35,7 +35,7 @@ def eta(content):
         try:
             anglen += e_a_dict[char]
         except KeyError:
-            pass
+            anglen += char
     return anglen
 
 
@@ -48,5 +48,5 @@ def ate(content):
         try:
             english += a_e_dict[char]
         except KeyError:
-            pass
+            english += char
     return english

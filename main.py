@@ -60,6 +60,7 @@ async def on_ready():
         client.db = await aiosqlite.connect('db/cashewbot.db')
         client.start_time = dt.now()
         client.web = aiohttp.ClientSession()
+        client.uno_guilds = await get_uno_guilds(client.db)
 
     out = '========== READY ==========\n' \
         f'\tNAME :\t\t{str(client.user)}\n' \
@@ -104,12 +105,13 @@ extensions = ['announce',
               'devtools',
               'eh',
               'fun',
-              'helpnew',
+              'help',
               'nasa',
               'servertools',
               'stat_handler',
               'translate',
               'utilities',
+              'uno',
               'weather']
 for extension in extensions:
     try:
@@ -117,6 +119,21 @@ for extension in extensions:
     except Exception as e:
         exc = f"{type(extension).__name__}: {e}"
         print(f"Failed to load extension {extension}\n{e}")
+
+
+async def get_uno_guilds(db):
+    async with db.cursor() as c:
+        data = await c.execute("SELECT * FROM guilds")
+        data = await data.fetchall()
+
+    uno_guilds = {}         # list of guilds in which uno is enabled
+
+    for guild in data:
+        guild_dict = json.loads(guild[1])
+        if 'uno' in guild_dict.keys():
+            uno_guilds[guild[0]] = guild_dict['uno']
+
+    return uno_guilds
 
 
 client.run(bot_token)
