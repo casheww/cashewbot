@@ -25,7 +25,7 @@ async def dump_guild_data(db, guild_id: int, info: str):
     async with db.cursor() as c:
 
         if data:
-            await c.execute('UPDATE guilds SET info=? WHERE id=?;',
+            await c.execute('UPDATE guilds SET data=? WHERE guild=?;',
                             [info, guild_id])
 
         else:
@@ -35,7 +35,7 @@ async def dump_guild_data(db, guild_id: int, info: str):
 
 async def delete_guild(db, guild_id: int):
     async with db.cursor() as c:
-        await c.execute('DELETE FROM guilds WHERE id=?;', [guild_id])
+        await c.execute('DELETE FROM guilds WHERE guild=?;', [guild_id])
     await db.commit()
 
 
@@ -65,7 +65,7 @@ async def dump_announce(db, guild_id: int, wh_url: str, wh_id: int):
 
     async with db.cursor() as c:
         if data:
-            await c.execute('UPDATE announce SET url=?, id=? WHERE guild=?;', [wh_url, wh_id, guild_id])
+            await c.execute('UPDATE announce SET wh_url=?, wh_id=? WHERE guild=?;', [wh_url, wh_id, guild_id])
 
         else:
             await c.execute('INSERT INTO announce VALUES (?, ?, ?)', [guild_id, wh_url, wh_id])
