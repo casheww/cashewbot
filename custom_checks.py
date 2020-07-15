@@ -1,11 +1,13 @@
 from discord.ext.commands import check
+import json
+
+with open("_keys.gitignore", "r") as f:
+    kelb = json.load(f)["kelb_id"]
 
 
 def is_celery():
     def predicate(ctx):
-        with open("_keys.gitignore", "r") as f:
-            kelb_id = f.read()
-        return ctx.author.id == kelb_id
+        return ctx.author.id == int(kelb)
     return check(predicate)
 
 
