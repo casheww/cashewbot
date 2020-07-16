@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import discord
 from discord.ext import commands
 from custom_checks import uno_enabled,\
@@ -283,7 +284,9 @@ class UnoGame(commands.Cog):
         game = self.client.uno_games[ctx.guild.id]
         colour = get_uno_colour(game.pond.top_card)
         player = game.get_player(ctx.author.id)
-        fp = player.get_hand_image()
+
+        func = functools.partial(player.get_hand_image)
+        fp = await self.client.loop.run_in_executor(None, func)
         card_list = player.get_hand_text()
 
         f = discord.File(fp, "cards.png")
