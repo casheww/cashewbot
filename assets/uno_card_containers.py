@@ -105,32 +105,37 @@ class Pond(CardContainer):
 
         c = card.to_colour if hasattr(card, "to_colour") and card.to_colour is not None else card.colour    # forgive me
         v = card.power if hasattr(card, "power") else card.number
-        overflow = self.edit_top(card, c, v)
+        self.edit_top(card, c, v)
+
+        if len(self.cards) >= 210:      # 216-(216%7)=216-6= 210
+            top = self.top_card
+            overflow = self.cards
+            self.cards = [top]
+        else:
+            overflow = []
 
         return overflow, power_effect
 
-    def edit_top(self, card, colour, value) -> Card:
-        try:
-            overflow = self.cards.pop(0)
-        except IndexError:
-            overflow = None
+    def edit_top(self, card, colour, value):
         self.cards.append(card)
         self.top_card = card
 
         self.top_colour = colour
         self.top_value = value
-        return overflow
+
 
 
 class Deck(CardContainer):
     def __init__(self):
         super().__init__()
 
+        # range(4) instead of range(2)? 2 decks -> more players
+
         for num_card in os.listdir("assets/uno-cards/numbers"):
-            for i in range(2):
+            for i in range(4):
                 self.cards.append(NumberCard(num_card[:-4]))
         for pow_card in os.listdir("assets/uno-cards/powers"):
-            for i in range(2):
+            for i in range(4):
                 self.cards.append(PowerCard(pow_card[:-4]))
 
 

@@ -32,7 +32,7 @@ class Game:
         elif name == "pond":
             return self.pond
         else:
-            return self.get_player(int(name))        # name should be member ID (int)
+            return self.get_player(int(name))
 
     def move_card(self, start: str, end: str, card_name: str):
         """ Moves a card from one CardContainer to another.
@@ -48,8 +48,7 @@ class Game:
 
         if isinstance(end, Pond):
             overflow, power_effect = end.add_card(card)
-            if overflow is not None:
-                self.deck.add_cards([overflow])
+            self.deck.add_cards(overflow)
             return power_effect
         else:
             end.add_cards([card])
