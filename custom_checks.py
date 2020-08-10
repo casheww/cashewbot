@@ -1,7 +1,7 @@
 from discord.ext.commands import check
 import json
 
-with open("_keys.gitignore", "r") as f:
+with open("_keys.json", "r") as f:
     kelb = json.load(f)["kelb_id"]
 
 

@@ -5,8 +5,8 @@ from discord.ext import commands
 from custom_checks import uno_enabled,\
             uno_player_channel, uno_current_player,\
             uno_game_in_progress, uno_game_not_in_progress
-import botdb, json
-import assets.uno_base_objects as uno_base
+import db_interface, json
+import src.uno_base_objects as uno_base
 
 
 def get_uno_colour(top_card: uno_base.Card) -> int:
@@ -21,15 +21,15 @@ def get_uno_colour(top_card: uno_base.Card) -> int:
 
 class UnoGame(commands.Cog):
     """ In-discord Uno games --- for Dreamers """
-    def __init__(self, client):
-        self.client = client
-        self.client.uno_games = {}
+    def __init__(self, bot):
+        self.bot = bot
+        self.bot.uno_games = {}
 
 
     async def uno_broadcast(self, game: uno_base.Game, embed: discord.Embed, fp: str = None):
         players = game.player_list
         for p in players:
-            channel = self.client.get_channel(p.channel_id)
+            channel = self.bot.get_channel(p.channel_id)
             file = discord.File(fp, "image.png")
             embed.set_thumbnail(url="attachment://image.png")
             await channel.send(file=file, embed=embed)
@@ -38,7 +38,7 @@ class UnoGame(commands.Cog):
 
     async def uno_turn_embed(self, event: str, top_card: uno_base.Card, next_player: uno_base.Player):
         colour = get_uno_colour(top_card)
-        user = self.client.get_user(next_player.member_id)
+        user = self.bot.get_user(next_player.member_id)
 
         embed = discord.Embed(colour=colour, description=event.replace("*", user.mention))
         embed.set_author(name="\u200B", icon_url=user.avatar_url)
@@ -53,11 +53,11 @@ class UnoGame(commands.Cog):
     async def clear_uno(self, game: uno_base.Game, winner=None):
         uno_chat_id = game.uno_chat_id
         player_list = game.player_list
-        persist = self.client.uno_guilds[game.guild_id]
+        persist = self.bot.uno_guilds[game.guild_id]
 
-        del self.client.uno_games[game.guild_id]
+        del self.bot.uno_games[game.guild_id]
 
-        uno_chat = self.client.get_channel(uno_chat_id)
+        uno_chat = self.bot.get_channel(uno_chat_id)
         e = discord.Embed(colour=0xff5555)
         if winner:
             e.set_author(name=f"\u200B", icon_url=winner.avatar_url)
@@ -72,12 +72,12 @@ class UnoGame(commands.Cog):
 
         for p in player_list:
             await asyncio.sleep(0.5)
-            channel = self.client.get_channel(p.channel_id)
+            channel = self.bot.get_channel(p.channel_id)
             await channel.send(embed=e)
 
         await asyncio.sleep(10)
         for p in player_list:
-            channel = self.client.get_channel(p.channel_id)
+            channel = self.bot.get_channel(p.channel_id)
             await channel.delete()
             await asyncio.sleep(2)
 
@@ -92,9 +92,9 @@ class UnoGame(commands.Cog):
 
         for p in game.player_list:
             if len(p.cards) == 0:
-                uno_chat = self.client.get_channel(game.uno_chat_id)
+                uno_chat = self.bot.get_channel(game.uno_chat_id)
                 async with uno_chat.typing():
-                    member = self.client.get_guild(game.guild_id).get_member(p.member_id)
+                    member = self.bot.get_guild(game.guild_id).get_member(p.member_id)
                     await self.clear_uno(game, member)
                 return
 
@@ -129,22 +129,22 @@ class UnoGame(commands.Cog):
     @uno_game_not_in_progress()
     @commands.has_guild_permissions(manage_guild=True)
     async def toggle_uno(self, ctx):
-        guild_info = await botdb.get_guild_data(self.client.db, ctx.guild.id)
+        guild_info = await db_interface.get_guild_data(self.bot.db, ctx.guild.id)
 
         if 'uno' in guild_info.keys():
             del guild_info['uno']
-            del self.client.uno_guilds[ctx.guild.id]
+            del self.bot.uno_guilds[ctx.guild.id]
 
             await ctx.send("Uno functionality now **disabled** for this server.")
 
         else:
             guild_info['uno'] = False       # bool represents uno chat persistence toggle
-            self.client.uno_guilds[ctx.guild.id] = False
+            self.bot.uno_guilds[ctx.guild.id] = False
 
             await ctx.send(f"Uno functionality now **enabled** for this server!")
 
         info = json.dumps(guild_info)
-        await botdb.dump_guild_data(self.client.db, ctx.guild.id, info)
+        await db_interface.dump_guild_data(self.bot.db, ctx.guild.id, info)
 
 
     @commands.group(description="Command group for in-game commands.",
@@ -162,15 +162,15 @@ class UnoGame(commands.Cog):
                              "will carry over to future games. Yw, Gerog.",
                  brief="Manage Server permission required.")
     async def toggle_persistence(self, ctx):
-        guild_info = await botdb.get_guild_data(self.client.db, ctx.guild.id)
+        guild_info = await db_interface.get_guild_data(self.bot.db, ctx.guild.id)
 
-        current = self.client.uno_guilds[ctx.guild.id]
+        current = self.bot.uno_guilds[ctx.guild.id]
         guild_info['uno'] = not current
-        self.client.uno_guilds[ctx.guild.id] = not current
+        self.bot.uno_guilds[ctx.guild.id] = not current
         await ctx.send(f"Uno chat persistence is now **{not current}** for this server.")
 
         info = json.dumps(guild_info)
-        await botdb.dump_guild_data(self.client.db, ctx.guild.id, info)
+        await db_interface.dump_guild_data(self.bot.db, ctx.guild.id, info)
 
 
     @uno.command(description="Starts an Uno game. List players and leave a space between each. "
@@ -214,7 +214,7 @@ class UnoGame(commands.Cog):
             await uno_chat.send(f"Welcome to the Uno lobby! @/here")
 
             game = uno_base.Game(ctx.guild.id, uno_chat, player_channel_dict)
-            self.client.uno_games[ctx.guild.id] = game
+            self.bot.uno_games[ctx.guild.id] = game
 
             embed = discord.Embed(title="Uno", colour=0xff5555)
             embed.add_field(
@@ -228,7 +228,7 @@ class UnoGame(commands.Cog):
                             inline=False)
 
             await ctx.send(f"Game is beginning... -> {uno_chat.mention}")
-            self.client.dispatch("card_played", game)
+            self.bot.dispatch("card_played", game)
             await uno_chat.send(embed=embed)
 
 
@@ -239,7 +239,7 @@ class UnoGame(commands.Cog):
     @uno_game_in_progress()
     async def end_game(self, ctx):
         async with ctx.typing():
-            game = self.client.uno_games[ctx.guild.id]
+            game = self.bot.uno_games[ctx.guild.id]
             await self.clear_uno(game)
 
 
@@ -258,7 +258,7 @@ class UnoGame(commands.Cog):
                 return await ctx.send("Wildcard syntax: `misc.wild colour`, `misc.wild4 colour`")
 
 
-        game: uno_base.Game = self.client.uno_games[ctx.guild.id]
+        game: uno_base.Game = self.bot.uno_games[ctx.guild.id]
         e = discord.Embed(colour=get_uno_colour(game.pond.top_card))
         e.set_author(name="\u200B", icon_url=ctx.author.avatar_url)
 
@@ -271,7 +271,7 @@ class UnoGame(commands.Cog):
             fp = f"assets/uno-cards/powers/{card_name.split()[0]}.png"
 
         await self.uno_broadcast(game, e, fp)
-        self.client.dispatch("card_played", game, effect=power_effect)
+        self.bot.dispatch("card_played", game, effect=power_effect)
 
 
     @uno.command(description="Shows you your hand of cards.",
@@ -281,12 +281,12 @@ class UnoGame(commands.Cog):
     @uno_game_in_progress()
     @uno_player_channel()
     async def cards(self, ctx):
-        game = self.client.uno_games[ctx.guild.id]
+        game = self.bot.uno_games[ctx.guild.id]
         colour = get_uno_colour(game.pond.top_card)
         player = game.get_player(ctx.author.id)
 
         func = functools.partial(player.get_hand_image)
-        fp = await self.client.loop.run_in_executor(None, func)
+        fp = await self.bot.loop.run_in_executor(None, func)
         card_list = player.get_hand_text()
 
         f = discord.File(fp, "cards.png")
@@ -306,25 +306,25 @@ class UnoGame(commands.Cog):
     @uno_player_channel()
     @uno_current_player()
     async def draw(self, ctx):
-        game = self.client.uno_games[ctx.guild.id]
+        game = self.bot.uno_games[ctx.guild.id]
         new_card = game.draw_from_deck(ctx.author.id, 1)[0]
 
         e = discord.Embed(colour=get_uno_colour(game.pond.top_card),
                           description=f"New card: `{new_card.name}`")
         e.set_author(name="\u200B", icon_url=ctx.author.avatar_url)
         await ctx.send(embed=e)
-        cards_command = self.client.get_command("uno cards")
+        cards_command = self.bot.get_command("uno cards")
         await cards_command.__call__(ctx)
 
         e.description = f"{ctx.author.mention} has drawn a card."
         # didn't use broadcasting func b/c otherwise info is send to author twice
         for p in game.player_list:
             if p.member_id != ctx.author.id:
-                c = self.client.get_channel(p.channel_id)
+                c = self.bot.get_channel(p.channel_id)
                 await c.send(embed=e)
 
-        self.client.dispatch("card_played", game)
+        self.bot.dispatch("card_played", game)
 
 
-def setup(client):
-    client.add_cog(UnoGame(client))
+def setup(bot):
+    bot.add_cog(UnoGame(bot))

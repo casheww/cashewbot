@@ -12,7 +12,7 @@ class NumberCard(Card):
     def __init__(self, name: str):
         super().__init__(name)
         self.number = int(name.split('.')[1])
-        self.img_path = f"assets/uno-cards/numbers/{name}.png"
+        self.img_path = f"src/uno-cards/numbers/{name}.png"
 
 
 class PowerCard(Card):
@@ -21,4 +21,4 @@ class PowerCard(Card):
         super().__init__(name)
         self.power = name.split('.')[1]
         self.to_colour = to_colour
-        self.img_path = f"assets/uno-cards/powers/{name}.png"
+        self.img_path = f"src/uno-cards/powers/{name}.png"

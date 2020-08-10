@@ -4,13 +4,13 @@ from datetime import datetime as dt
 import json
 
 
-with open('_keys.gitignore') as f:
+with open('_keys.json') as f:
     nasa_key = json.load(f)['nasa']
 
 
 class NASA(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
 
     @commands.command(description="Returns NASA's Astronomy Picture of the Day for today"
@@ -29,7 +29,7 @@ class NASA(commands.Cog):
 
         p = {"date": date_str, "hd": 'True', 'api_key': nasa_key}
 
-        async with self.client.web.get(url=f"https://api.nasa.gov/planetary/apod", params=p) as r:
+        async with self.bot.web.get(url=f"https://api.nasa.gov/planetary/apod", params=p) as r:
             j = await r.json()
 
         try:
@@ -51,5 +51,5 @@ class NASA(commands.Cog):
 
         await ctx.send(embed=e)
 
-def setup(client):
-    client.add_cog(NASA(client))
+def setup(bot):
+    bot.add_cog(NASA(bot))

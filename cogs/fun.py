@@ -5,8 +5,8 @@ import random
 
 
 class Fun(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
 
     @commands.command(hidden=True)
@@ -26,7 +26,7 @@ class Fun(commands.Cog):
         await ctx.send("stupid stupid stupid")
 
 
-    @commands.command(description="Generates a random keysmash... Cashew style.",
+    @commands.command(description="Generates a random keysmash.",
                       aliases=["ks"])
     async def keysmash(self, ctx):
         letters = ["s", "d", "f", "j", "k"]
@@ -38,5 +38,5 @@ class Fun(commands.Cog):
         await ctx.send(keysmash)
 
 
-def setup(client):
-        client.add_cog(Fun(client))
+def setup(bot):
+    bot.add_cog(Fun(bot))

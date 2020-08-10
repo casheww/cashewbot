@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import inspect
 
 
 hidden_cogs = ['Dev', 'EH', 'StatH', 'Help']
@@ -11,13 +10,6 @@ def plural_command(number: int):
         return "command"
     else:
         return "commands"
-
-def get_help_colour(ctx):
-    """ guild.me is none outside of guild, so DM catch is required. """
-    if ctx.guild:
-        return ctx.guild.me.colour
-    else:
-        return discord.Colour.teal()
 
 
 def get_cog(cog_list, cog_name):
@@ -39,7 +31,7 @@ class CustomHelp(commands.HelpCommand):
         client = ctx.bot
         destination = self.get_destination()
 
-        e = discord.Embed(colour=get_help_colour(ctx),
+        e = discord.Embed(colour=ctx.colour,
                           title=f"{client.user.name} -- Bot help",
                           description=client.description)
 
@@ -67,7 +59,7 @@ class CustomHelp(commands.HelpCommand):
 
         ctx = self.context
 
-        e = discord.Embed(colour=get_help_colour(ctx),
+        e = discord.Embed(colour=ctx.colour,
                           title=cog.qualified_name,
                           description="*(category)*")
 
@@ -90,7 +82,7 @@ class CustomHelp(commands.HelpCommand):
         else:
             sig = [command.full_parent_name, command.name, command.signature]
 
-        e = discord.Embed(colour=get_help_colour(ctx),
+        e = discord.Embed(colour=ctx.colour,
                           title=command.qualified_name,
                           description=f"*(command)*\n{command.description}")
         e.add_field(name="Syntax", value=f"`{self.clean_prefix}{' '.join(sig)}`", inline=False)
@@ -109,7 +101,7 @@ class CustomHelp(commands.HelpCommand):
         ctx = self.context
         destination = self.get_destination()
 
-        e = discord.Embed(colour=get_help_colour(ctx),
+        e = discord.Embed(colour=ctx.colour,
                           title=group.qualified_name,
                           description=f"*(command group)*\n{group.description}")
         e.add_field(name="User conditions", value=f"{group.brief}", inline=False)
@@ -170,10 +162,10 @@ class CustomHelp(commands.HelpCommand):
 
 
 class Help(commands.Cog):
-    def __init__(self, client):
-        client.help_command = CustomHelp()      # overwrites default help command b/c yucky
-        client.help_command.cog = self
+    def __init__(self, bot):
+        bot.help_command = CustomHelp()      # overwrites default help command b/c yucky
+        bot.help_command.cog = self
 
 
-def setup(client):
-    client.add_cog(Help(client))
+def setup(bot):
+    bot.add_cog(Help(bot))

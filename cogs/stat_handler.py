@@ -3,8 +3,8 @@ import json
 
 
 class StatH(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
 
     @commands.Cog.listener()
@@ -34,5 +34,5 @@ class StatH(commands.Cog):
             json.dump(data, f)
 
 
-def setup(client):
-    client.add_cog(StatH(client))
+def setup(bot):
+    bot.add_cog(StatH(bot))

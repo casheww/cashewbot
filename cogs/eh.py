@@ -3,8 +3,8 @@ import traceback as tb
 
 
 class EH(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
 
     @commands.Cog.listener()
@@ -18,6 +18,9 @@ class EH(commands.Cog):
             pass
 
         error = getattr(error, 'original', error)
+
+        if isinstance(error, commands.CommandNotFound):
+            return
 
         with open('../log.txt', 'a+', encoding='utf16') as f:
             f.write(f"""--- {error}
@@ -38,8 +41,6 @@ class EH(commands.Cog):
             commands.NoPrivateMessage: "This command can't be used outside of a server.",
         }
 
-        await ctx.message.add_reaction('\U0000274e')
-
         for e in em_dict:
             if isinstance(error, e):
                 return await ctx.send(em_dict[e])
@@ -55,5 +56,5 @@ class EH(commands.Cog):
         raise error
 
 
-def setup(client):
-    client.add_cog(EH(client))
+def setup(bot):
+    bot.add_cog(EH(bot))

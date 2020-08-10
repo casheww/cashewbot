@@ -2,8 +2,8 @@ import os
 from PIL import Image
 import random
 from typing import List
-from assets.uno_card_objects import *
-from assets.uno_errors import *
+from src.uno_card_objects import *
+from src.uno_errors import *
 from typing import Union
 
 
@@ -48,7 +48,7 @@ class Player(CardContainer):
     def get_hand_image(self):
         path_list = [c.img_path for c in self.cards]
         image_list = [Image.open(fp) for fp in path_list]
-        fp = f"assets/uno-temp/{self.guild_id}{self.member_id}.png"
+        fp = f"src/uno-temp/{self.guild_id}{self.member_id}.png"
 
         img = Image.new("RGBA", ((143+10)*len(image_list), 214), (1, 0, 0, 0))
         img.paste(image_list.pop(0))
@@ -131,10 +131,10 @@ class Deck(CardContainer):
 
         # range(4) instead of range(2)? 2 decks -> more players
 
-        for num_card in os.listdir("assets/uno-cards/numbers"):
+        for num_card in os.listdir("src/uno-cards/numbers"):
             for i in range(4):
                 self.cards.append(NumberCard(num_card[:-4]))
-        for pow_card in os.listdir("assets/uno-cards/powers"):
+        for pow_card in os.listdir("src/uno-cards/powers"):
             for i in range(4):
                 self.cards.append(PowerCard(pow_card[:-4]))
 

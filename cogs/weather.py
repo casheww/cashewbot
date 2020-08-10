@@ -1,18 +1,17 @@
 import discord
 from discord.ext import commands
-from datetime import datetime as dt
 import json
 
 
 # yoinked half of this code from nasa.py (no regrets)
 
 # api key used is from https://openweathermap.org
-with open('_keys.gitignore') as f:
+with open('_keys.json') as f:
     weather_key = json.load(f)['weather']
 
 class Weather(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
     @commands.command(description='Returns weather information based on city given.',
                       aliases=['getweather'])
@@ -20,7 +19,7 @@ class Weather(commands.Cog):
         # fuck out of here with those imperial measurements :flag_gb:
         headers = {'q': weather_city, 'units': 'metric', 'appid': weather_key}
 
-        async with self.client.web.get(url=f'https://api.openweathermap.org/data/2.5/weather', params=headers) as req:
+        async with self.bot.web.get(url=f'https://api.openweathermap.org/data/2.5/weather', params=headers) as req:
             res = await req.json()
 
         e = discord.Embed(title='OpenWeatherMap - Current Weather Data',
@@ -35,5 +34,6 @@ class Weather(commands.Cog):
         e.add_field(name='Humidity', value=str(res['main']['humidity'])+'%', inline=True)
         await ctx.send(embed=e)
 
-def setup(client):
-    client.add_cog(Weather(client))
+
+def setup(bot):
+    bot.add_cog(Weather(bot))

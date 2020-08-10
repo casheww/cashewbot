@@ -1,12 +1,12 @@
 import discord
 from discord.ext import commands
-import botdb, json
+import db_interface, json
 import datetime as dt
 
 
 class Birthdays(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
 
     @commands.group(description="Group containing bday commands.",
@@ -20,7 +20,7 @@ class Birthdays(commands.Cog):
     async def before_bday(self, ctx):
         if ctx.message.content.strip(ctx.prefix) != "bday toggle":
 
-            data = await botdb.get_bdays(ctx.bot.db, ctx.guild.id)
+            data = await db_interface.get_bdays(ctx.bot.db, ctx.guild.id)
 
             if isinstance(data, type(None)):
                 return await ctx.send("Birthday functionality is disabled in this server.")
@@ -31,22 +31,22 @@ class Birthdays(commands.Cog):
                   brief="Manage Server permission required.")
     @commands.has_guild_permissions(manage_guild=True)
     async def toggle(self, ctx):
-        base_data = await botdb.get_bdays(self.client.db, ctx.guild.id)
+        base_data = await db_interface.get_bdays(self.bot.db, ctx.guild.id)
 
         if not isinstance(base_data, type(None)):
-            await botdb.delete_bdays(self.client.db, ctx.guild.id)
+            await db_interface.delete_bdays(self.bot.db, ctx.guild.id)
             return await ctx.send("Birthday functionality for this guild has been "
                                   "**disabled**, and all bday data has been deleted.")
 
         data = json.dumps({})
-        await botdb.dump_bdays(self.client.db, ctx.guild.id, data)
+        await db_interface.dump_bdays(self.bot.db, ctx.guild.id, data)
         await ctx.send("Birthday functionality for this guild has been **enabled**!")
 
 
     @bday.command(description="Register your birthday to the server bday list. "
                               "Date format: DD/MM.")
     async def set(self, ctx, date):
-        data = await botdb.get_bdays(self.client.db, ctx.guild.id)
+        data = await db_interface.get_bdays(self.bot.db, ctx.guild.id)
 
         try:
             date_obj = dt.datetime.strptime(date, "%d/%m")
@@ -54,13 +54,13 @@ class Birthdays(commands.Cog):
             return await ctx.send("Please use the date format: DD/MM. E.g.: 18/06.")
 
         data[str(ctx.author.id)] = int(date_obj.strftime("%j"))
-        await botdb.dump_bdays(self.client.db, ctx.guild.id, json.dumps(data))
+        await db_interface.dump_bdays(self.bot.db, ctx.guild.id, json.dumps(data))
         await ctx.send(f"Your birthday has been set to {date}! :tada:")
 
 
     @bday.command(description="Removes your birthday from the server's bday list.")
     async def remove(self, ctx):
-        data = await botdb.get_bdays(self.client.db, ctx.guild.id)
+        data = await db_interface.get_bdays(self.bot.db, ctx.guild.id)
 
         try:
             del data[str(ctx.author.id)]
@@ -68,14 +68,14 @@ class Birthdays(commands.Cog):
         except KeyError:
             await ctx.send("Nothing to delete.")
 
-        await botdb.dump_bdays(self.client.db, ctx.guild.id, json.dumps(data))
+        await db_interface.dump_bdays(self.bot.db, ctx.guild.id, json.dumps(data))
 
 
     @bday.command(description="Returns a list of all birthdays registered in the guild "
                               "over the next week.",
                   aliases=["soon"])
     async def upcoming(self, ctx):
-        data = await botdb.get_bdays(self.client.db, ctx.guild.id)
+        data = await db_interface.get_bdays(self.bot.db, ctx.guild.id)
         start = int(dt.datetime.today().strftime("%j"))-1
         end = start + 7
 
@@ -119,5 +119,5 @@ class Birthdays(commands.Cog):
 
 
 
-def setup(client):
-    client.add_cog(Birthdays(client))
+def setup(bot):
+    bot.add_cog(Birthdays(bot))

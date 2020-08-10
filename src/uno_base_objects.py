@@ -1,4 +1,4 @@
-from assets.uno_card_containers import *
+from src.uno_card_containers import *
 import discord.channel
 
 

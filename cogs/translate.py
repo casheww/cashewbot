@@ -1,44 +1,43 @@
 import discord
 from discord.ext import commands
-from assets import anglen
-import botdb, json
+from src import anglen
+import db_interface, json
 import aiohttp
 
 
-with open('_keys.gitignore') as file:
+with open('_keys.json') as file:
     keys = json.load(file)
     yandex_key = keys['yandex']
 
 y_link = "https://translate.yandex.net/api/v1.5/tr.json/translate"
 
 
-async def to_target_lang(text: str, target_language: str):
-    aiohttp_session = aiohttp.ClientSession()
-
-    params = {'key': yandex_key, 'text': text, 'lang': target_language}
-    async with aiohttp_session.post(url=y_link, params=params) as r:
-        j = await r.json()
-
-    try:
-        final_text = j['text'][0]
-        translate_info = j['lang']
-
-        await aiohttp_session.close()
-        return [final_text, translate_info]
-
-    except KeyError:
-        await aiohttp_session.close()
-        return ['error']
-
-
 class Translate(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
+
+    async def to_target_lang(self, text: str, target_language: str):
+        aiohttp_session = self.bot.web
+
+        params = {'key': yandex_key, 'text': text, 'lang': target_language}
+        async with aiohttp_session.post(url=y_link, params=params) as r:
+            j = await r.json()
+
+        try:
+            final_text = j['text'][0]
+            translate_info = j['lang']
+
+            await aiohttp_session.close()
+            return [final_text, translate_info]
+
+        except KeyError:
+            await aiohttp_session.close()
+            return ['error']
 
 
     @commands.command(description="Translates text to English.")
     async def en(self, ctx, *, text):
-        data = await to_target_lang(text, "en")
+        data = await self.to_target_lang(text, "en")
         if data[0] != "error":
             await ctx.send(f"*{ctx.author.name} --- {data[1]}* :\n{data[0]}")
         else:
@@ -47,7 +46,7 @@ class Translate(commands.Cog):
 
     @commands.command(description="Translates text to a target language.")
     async def translate(self, ctx, target_language: str, *, text):
-        data = await to_target_lang(text, target_language)
+        data = await self.to_target_lang(text, target_language)
         if data[0] != "error":
             await ctx.send(f"*{ctx.author.name} --- {data[1]}* :\n{data[0]}")
         else:
@@ -61,7 +60,7 @@ class Translate(commands.Cog):
                       brief="Manage Server permission Required.")
     @commands.has_guild_permissions(manage_guild=True)
     async def toggle_lang_tunnel(self, ctx, out_channel: discord.TextChannel = None, target_language: str = 'en'):
-        guild_info = await botdb.get_guild_data(self.client.db, ctx.guild.id)
+        guild_info = await db_interface.get_guild_data(self.bot.db, ctx.guild.id)
 
         if 'lang' in guild_info.keys()\
                 and 'in' in guild_info['lang'].keys()\
@@ -82,15 +81,15 @@ class Translate(commands.Cog):
 
         info = json.dumps(guild_info)
 
-        await botdb.dump_guild_data(self.client.db, ctx.guild.id, info)
+        await db_interface.dump_guild_data(self.bot.db, ctx.guild.id, info)
 
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if not message.guild:
+        if not message.guild or message.author.id == self.bot.user.id:
             return
 
-        guild_info = await botdb.get_guild_data(self.client.db, message.guild.id)
+        guild_info = await db_interface.get_guild_data(self.bot.db, message.guild.id)
 
         if not guild_info:
             return
@@ -99,23 +98,23 @@ class Translate(commands.Cog):
 
         if 'in' in guild_info['lang'].keys() and message.channel.id == guild_info['lang']['in']:
 
-            data = await to_target_lang(text=message.content, target_language=guild_info['lang']['outlang'])
+            data = await self.to_target_lang(text=message.content, target_language=guild_info['lang']['outlang'])
 
             if data[0] != 'error' and data[1][:2] != data[1][3:]:  # en-en or fr-fr -e.g.- won't be logged
-                out = self.client.get_channel(guild_info['lang']['out'])
+                out = self.bot.get_channel(guild_info['lang']['out'])
                 await out.send(f'-----\n*{message.author} --- {data[1]}* :\n{data[0]}')
 
 
     @commands.command(description="Encrypt text using the Anglen substitution cipher, "
                                   "devised by DGTILL.")
-    async def toanglen(self, ctx, *, text):
+    async def to_anglen(self, ctx, *, text):
         await ctx.send(anglen.eta(text))
 
 
     @commands.command(description="Decrypt text from Anglen.")
-    async def fromanglen(self, ctx, *, text):
+    async def from_anglen(self, ctx, *, text):
         await ctx.send(anglen.ate(text))
 
 
-def setup(client):
-    client.add_cog(Translate(client))
+def setup(bot):
+    bot.add_cog(Translate(bot))
