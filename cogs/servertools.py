@@ -64,7 +64,6 @@ class ServerTools(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         await db_interface.delete_guild(self.bot.db, guild.id)
-        await db_interface.delete_announce(self.bot.db, guild.id)
 
 
     @commands.command(description="Returns stats and info regarding the current server.",

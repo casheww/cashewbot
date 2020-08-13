@@ -28,8 +28,9 @@ async def get_all_guilds(db):
         return data
 
 
-async def dump_guild_data(db, guild_id: int, info: str):
+async def dump_guild_data(db, guild_id: int, info):
     data = await get_guild_data(db, guild_id)
+    info = json.dumps(info)
 
     async with db.cursor() as c:
 
