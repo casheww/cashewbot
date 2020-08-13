@@ -95,7 +95,6 @@ class Counting(commands.Cog):
         for c in self.bot.counting_channels:
             await db_interface.dump_count_data(self.bot.db, c.guild_id, c.id, c.last_member_id,
                                                c.num0, c.num1, c.fibonacci)
-            print(c)
 
 
 def setup(bot):
