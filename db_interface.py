@@ -48,45 +48,6 @@ async def delete_guild(db, guild_id: int):
     await db.commit()
 
 
-async def get_announce(db, guild_id: int):
-    """ returns list: [guild_id, wh_url, wh_id] """
-
-    async with db.cursor() as c:
-        await c.execute('SELECT * FROM announce WHERE guild=?', [guild_id])
-        announce_data = await c.fetchall()
-
-        try:
-            return announce_data[0]
-        except IndexError:
-            return announce_data
-
-
-async def get_all_announce(db):
-    async with db.cursor() as c:
-        await c.execute('SELECT * FROM announce')
-        data = await c.fetchall()
-
-        return data
-
-
-async def dump_announce(db, guild_id: int, wh_url: str, wh_id: int):
-    data = await get_announce(db, guild_id)
-
-    async with db.cursor() as c:
-        if data:
-            await c.execute('UPDATE announce SET wh_url=?, wh_id=? WHERE guild=?;', [wh_url, wh_id, guild_id])
-
-        else:
-            await c.execute('INSERT INTO announce VALUES (?, ?, ?)', [guild_id, wh_url, wh_id])
-    await db.commit()
-
-
-async def delete_announce(db, guild_id):
-    async with db.cursor() as c:
-        await c.execute('DELETE FROM announce WHERE guild=?;', [guild_id])
-    await db.commit()
-
-
 async def get_bdays(db, guild_id: int):
     async with db.cursor() as c:
         await c.execute('SELECT * FROM bday WHERE guild=?', [guild_id])
@@ -113,4 +74,44 @@ async def dump_bdays(db, guild_id: int, data: str):
 async def delete_bdays(db, guild_id: int):
     async with db.cursor() as c:
         await c.execute('DELETE FROM bday WHERE guild=?;', [guild_id])
+    await db.commit()
+
+
+async def get_count_data(db, guild_id: int):
+
+    async with db.cursor() as c:
+        await c.execute('SELECT * FROM counting WHERE guild=?', [guild_id])
+        counting_data = await c.fetchone()
+
+        return counting_data
+
+
+async def get_all_count_data(db):
+
+    async with db.cursor() as c:
+        await c.execute('SELECT * FROM counting')
+        data = await c.fetchall()
+
+        return data
+
+
+async def dump_count_data(db, guild_id: int, channel_id: int, member_id: int,
+                          num0: int, num1: int, fibonacci: int):
+    data = await get_count_data(db, guild_id)
+
+    async with db.cursor() as c:
+        if data:
+            await c.execute('UPDATE counting SET channel=?, member=?, '
+                            'number0=?, number1=?, fibonacci=? WHERE guild=?',
+                            [channel_id, member_id, num0, num1, fibonacci, guild_id])
+
+        else:
+            await c.execute('INSERT INTO counting VALUES (?, ?, ?, ?, ?, ?)',
+                            [guild_id, channel_id, member_id, num0, num1, fibonacci])
+    await db.commit()
+
+
+async def delete_counting(db, guild_id):
+    async with db.cursor() as c:
+        await c.execute('DELETE FROM counting WHERE guild=?', [guild_id])
     await db.commit()
