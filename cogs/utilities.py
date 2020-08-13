@@ -1,5 +1,7 @@
-from discord.ext import commands
 from datetime import datetime as dt
+import discord
+from discord.ext import commands
+import platform
 
 
 class Utilities(commands.Cog):
@@ -18,12 +20,19 @@ class Utilities(commands.Cog):
         await ctx.send(f"Pong! `{round(self.bot.latency * 1000)}ms`")
 
 
-    @commands.command(description="Returns a list of all of the loaded cogs.")
-    async def cogs(self, ctx):
-        outstr = ""
-        for cog in self.bot.cogs:
-            outstr += f"{cog}, "
-        await ctx.send(f"**Loaded cogs:**\n{outstr[:-2]}")
+    @commands.command(description="Returns bot info.")
+    async def info(self, ctx):
+
+        embed = discord.Embed(description=self.bot.description, colour=ctx.colour)
+        embed.set_author(name=str(self.bot.user), url="https://github.com/casheww/cashewbot")
+        embed.add_field(name="Commands", value=str(len(self.bot.commands)))
+        embed.add_field(name="Servers", value=str(len(self.bot.guilds)))
+        embed.add_field(name="casheww's Github", value="[Click here](https://www.github.com/casheww/)")
+        embed.add_field(name="Invite", value=f"[Invite me to your server!]({self.bot.invite})", inline=False)
+        embed.add_field(name="\u200B", value=f"**CashewBot**: {self.bot.version}\n"
+                                             f"**Python**: {platform.python_version()} | "
+                                             f"**discord.py**: {discord.__version__}")
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
