@@ -1,3 +1,4 @@
+import asyncio
 from discord.ext import commands
 import traceback as tb
 
@@ -29,6 +30,7 @@ class EH(commands.Cog):
             {tb.extract_tb(error.__traceback__)}\n\n""")
 
         em_dict = {
+            asyncio.TimeoutError: "Prompt timed out.",
             commands.ExtensionNotFound: "The extension was not found.",
             commands.ExtensionAlreadyLoaded: "The extension is already loaded.",
             commands.NoEntryPointError: "The extension does not have a setup function.",
