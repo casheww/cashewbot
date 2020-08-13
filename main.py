@@ -19,6 +19,7 @@ class CashewBot(commands.Bot):
         self.web = None
         self.invite = "https://discord.com/api/oauth2/authorize?client_id=706534185992454198" \
                       "&permissions=67628112&scope=bot"
+        self.support_invite = "https://discord.gg/qK5JkSG"
         self.log_id = 584971929778257930
         self.prefix_dict = {}
         self.start_time = datetime.now()

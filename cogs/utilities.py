@@ -26,13 +26,18 @@ class Utilities(commands.Cog):
         embed = discord.Embed(description=self.bot.description, colour=ctx.colour)
         embed.set_author(name=str(self.bot.user), url="https://github.com/casheww/cashewbot")
         embed.add_field(name="Commands", value=str(len(self.bot.commands)))
-        embed.add_field(name="Servers", value=str(len(self.bot.guilds)))
-        embed.add_field(name="casheww's Github", value="[Click here](https://www.github.com/casheww/)")
-        embed.add_field(name="Invite", value=f"[Invite me to your server!]({self.bot.invite})", inline=False)
+        embed.add_field(name="Guilds", value=str(len(self.bot.guilds)))
+        embed.add_field(name="CashewBot Guild", value=f"[Join here]({self.bot.support_invite})")
         embed.add_field(name="\u200B", value=f"**CashewBot**: {self.bot.version}\n"
                                              f"**Python**: {platform.python_version()} | "
-                                             f"**discord.py**: {discord.__version__}")
+                                             f"**discord.py**: {discord.__version__}",
+                        inline=False)
         await ctx.send(embed=embed)
+
+
+    @commands.command(description="Returns the bot invite link.")
+    async def invite(self, ctx):
+        await ctx.send(f"<{self.bot.invite}>")
 
 
 def setup(bot):
