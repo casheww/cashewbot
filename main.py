@@ -72,12 +72,11 @@ if __name__ == "__main__":
         token = json.load(f)["discord"]
 
     bot = CashewBot()
+    bot.loop.create_task(bot.startup())
 
     bot.load_extension("jishaku")
     for ext in os.listdir("cogs"):
         if ext.endswith(".py"):
             bot.load_extension(f"cogs.{ext[:-3]}")
-
-    bot.loop.create_task(bot.startup())
 
     bot.run(token)
