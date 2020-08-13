@@ -82,12 +82,12 @@ class Counting(commands.Cog):
         i = self.bot.counting_channels.index(count_ch)
         self.bot.counting_channels[i].last_member_id = message.author.id
         if count_ch.fibonacci:
-            self.bot.counting_channels[i].num0 = target
             self.bot.counting_channels[i].num1 = count_ch.num0
+            self.bot.counting_channels[i].num0 = int(content)
 
         else:
-            self.bot.counting_channels[i].num0 = target
             self.bot.counting_channels[i].num1 = 1
+            self.bot.counting_channels[i].num0 = int(content)
 
 
     @tasks.loop(minutes=3)
