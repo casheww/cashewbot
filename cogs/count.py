@@ -93,9 +93,16 @@ class Counting(commands.Cog):
     @tasks.loop(minutes=3)
     async def count_backup(self):
         for c in self.bot.counting_channels:
-            fib = 1 if c.fibonacci else 0
             await db_interface.dump_count_data(self.bot.db, c.guild_id, c.id, c.last_member_id,
                                                c.num0, c.num1, c.fibonacci)
+
+
+    @commands.command(description="Returns the last recorded count for this guild.")
+    @commands.guild_only()
+    async def last_count(self, ctx):
+        data = self.bot.get_counting_channel(guild_id=ctx.guild.id)
+        last_member = ctx.guild.get_member(data.last_member_id)
+        await ctx.send(f"Last number: `{data.num0}`\nLast member: `{last_member}`\nChannel: <#{data.id}>")
 
 
 def setup(bot):
