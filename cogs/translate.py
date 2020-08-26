@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from src import anglen
 import db_interface, json
-import aiohttp
 
 
 with open('_keys.json') as file:
@@ -27,11 +26,9 @@ class Translate(commands.Cog):
             final_text = j['text'][0]
             translate_info = j['lang']
 
-            await aiohttp_session.close()
             return [final_text, translate_info]
 
         except KeyError:
-            await aiohttp_session.close()
             return ['error']
 
 
