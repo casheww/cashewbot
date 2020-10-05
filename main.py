@@ -3,8 +3,8 @@ import aiosqlite
 from cogs.count import CountingChannel
 from datetime import datetime
 import db_interface
+import discord
 from discord.ext import commands
-import jishaku
 import json
 import os
 from src.context import CustomContext
@@ -12,8 +12,10 @@ from src.context import CustomContext
 
 class CashewBot(commands.Bot):
     def __init__(self):
+        intents = discord.Intents.all()
         super().__init__(command_prefix=self.get_prefix,
                          case_insensitive=True,
+                         intents=intents,
                          description="A generic Discord bot... Written by casheww in Python.")
 
         self.db = None
@@ -24,7 +26,7 @@ class CashewBot(commands.Bot):
         self.prefix_dict = {}
         self.start_time = None
         self.support_invite = "https://discord.gg/qK5JkSG"
-        self.version = "4.2.0"
+        self.version = "4.2.1"
         self.web = None
 
 
@@ -85,11 +87,11 @@ class CashewBot(commands.Bot):
         self.start_time = datetime.now()
         self.web = aiohttp.ClientSession()
 
-
         data = await db_interface.get_all_guilds(self.db)
         for entry in data:
+            entry = json.loads(entry[1])
             try:
-                prefix = json.loads(entry[1])["info"]["prefix"]
+                prefix = entry["info"]["prefix"]
                 self.prefix_dict[entry[0]] = prefix
             except KeyError:
                 pass
