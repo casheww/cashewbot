@@ -1,4 +1,4 @@
-[![Discord](https://discordapp.com/api/guilds/570630745220186132/widget.png)](https://discord.gg/qK5JkSG)
+[![Discord](https://img.shields.io/discord/570630745220186132?logo=discord&style=for-the-badge)](https://discord.gg/qK5JkSG)
 
 # cashewbot
 Rework of my Discord bot written using discord.py. An amalgamation of ideas stolen from other bots, + a few of my own.
