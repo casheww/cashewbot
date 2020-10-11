@@ -44,7 +44,6 @@ class Spotify(commands.Cog):
                         outcomes.append(False)
 
             if outcomes.count(True) == 1:
-                await ctx.send("[!] Debug - 1 parameter has passed RE search.")
                 pass
             else:
                 # user is fucking stupid, exit
@@ -65,7 +64,6 @@ class Spotify(commands.Cog):
                         outcomes.append(False)
 
             if outcomes.count(True) == 2:
-                await ctx.send("[!] Debug - 2 parameter has passed RE search.")
                 pass
 
             else:
