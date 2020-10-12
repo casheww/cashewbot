@@ -35,6 +35,8 @@ class Spotify(commands.Cog):
         return {"Authorization": "Bearer %s" % token}
 
     async def fetch_auth_flow(self):
+        # https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
+        # this is step 3 or something. the rest of the code is only necessary once to get up to here.
         data = {
             "grant_type": "refresh_token",
             "refresh_token": spot_refresh_token
