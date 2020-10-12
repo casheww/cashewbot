@@ -65,7 +65,6 @@ class Fun(commands.Cog):
 
         await ctx.send(embed=e, file=file)
 
-
     @commands.command(
         description="Encrypt text using the Anglen substitution cipher, "
         "devised by DGTILL.")
