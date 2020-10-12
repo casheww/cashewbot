@@ -21,7 +21,7 @@ class Spotify(commands.Cog):
     @commands.command(description='''Grabs details on an artist or track and embeds them nicely.'
                                   Use is: `##spotifygrab <artist,track or both delimited by comma> query`  ''',
                       aliases=['spotify'])
-    async def spotifygrab(self, ctx, reqtype, query):
+    async def spotifygrab(self, ctx, reqtype, *, query):
 
         # lets actually check the input given is correct shall we
 
@@ -101,39 +101,42 @@ class Spotify(commands.Cog):
         if 'artist' in reqtype:
             try:
                 artist = res['artists']['items'][0]
-            except KeyError:
+            except (KeyError, IndexError):
                 print("idk something fucked up here")
-                return
 
-            e = discord.Embed(title="Top Result for Artist", colour=discord.Colour.green())
-            e.set_thumbnail(url=artist['images'][2]['url'])
-            e.add_field(name="Artist Name:", value=artist['name'])
-            e.add_field(name="Artist's Page:", value=artist['external_urls']['spotify'])
-            e.add_field(name="Followers:", value=artist['followers']['total'])
-            e.add_field(name="Genres:", value=artist['genres'][0]+","+artist['genres'][1])
-            e.set_footer(text="API Request Made: " + res['artists']['href'])
-            await ctx.send(embed=e)
+            else:
+                e = discord.Embed(title="Top Result for Artist", colour=discord.Colour.green())
+                e.set_thumbnail(url=artist['images'][2]['url'])
+                e.add_field(name="Artist Name:", value=artist['name'])
+                e.add_field(name="Info:", value=f"[Artist's page]({artist['external_urls']['spotify']})\n"
+                                               f"Followers: {artist['followers']['total']}")
+
+                if artist['genres']:
+                    e.add_field(name="Genres:", value=", ".join(artist['genres'][:2]))
+
+                await ctx.send(embed=e)
 
         if 'track' in reqtype:
             try:
                 tracks = res['tracks']['items'][0]
-            except KeyError:
+            except (KeyError, IndexError):
                 print("idk something fucked up here")
                 return
 
-            e = discord.Embed(title="Top Result For Tracks", colour = discord.Colour.green())
-            e.set_thumbnail(url=tracks['album']['images'][2]['url'])
-            e.add_field(name="Track Name:", value=tracks['name'])
-            e.add_field(name="Track: ", value=tracks['external_urls']['spotify'])
-            e.add_field(name="Track on Spotify: ", value=tracks['external_urls']['spotify'])
-            try:
-                e.add_field(name="Artists: ", value=tracks['artists'][0]['name']+","+tracks['artists'][1]['name']+","+tracks['artists'][2]['name'])
-            except IndexError:
-                e.add_field(name="Artists: ", value=tracks['artists'][0]['name'])
+            else:
+                e = discord.Embed(title="Top Result For Tracks", colour = discord.Colour.green())
+                e.set_thumbnail(url=tracks['album']['images'][2]['url'])
+                e.add_field(name="Track Name:", value=tracks['name'])
+                e.add_field(name="Track:", value=f"[Click me!]({tracks['external_urls']['spotify']})")
 
-            e.add_field(name="Release Date", value=tracks['album']['release_date'])
-            e.set_footer(text="API Request Made: " + res['tracks']['href'])
-            await ctx.send(embed=e)
+                try:
+                    e.add_field(name="Artists: ", value=tracks['artists'][0]['name']+","+tracks['artists'][1]['name'] +
+                                                        ","+tracks['artists'][2]['name'])
+                except IndexError:
+                    e.add_field(name="Artists:", value=", ".join(a['name'] for a in tracks['artists']))
+
+                e.add_field(name="Release Date", value=tracks['album']['release_date'])
+                await ctx.send(embed=e)
 
 def setup(bot):
     bot.add_cog(Spotify(bot))
