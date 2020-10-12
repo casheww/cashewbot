@@ -8,7 +8,6 @@ from main import CashewBot
 async def cash_setup(db, guild):
     info = json.dumps({'info': {'name': guild.name, 'join': str(dt.now().strftime(f'%d/%m/%Y'))}})
     await db_interface.dump_guild_data(db, guild.id, info)
-    await db_interface.delete_announce(db, guild.id)
 
 
 class ServerTools(commands.Cog):
