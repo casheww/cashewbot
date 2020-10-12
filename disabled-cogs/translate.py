@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from src import anglen
 import db_interface
 import json
 
@@ -103,16 +102,6 @@ class Translate(commands.Cog):
             if data[0] != 'error' and data[1][:2] != data[1][3:]:
                 out = self.bot.get_channel(guild_info['lang']['out'])
                 await out.send(f'-----\n*{message.author} --- {data[1]}* :\n{data[0]}')
-
-    @commands.command(
-        description="Encrypt text using the Anglen substitution cipher, "
-        "devised by DGTILL.")
-    async def to_anglen(self, ctx, *, text):
-        await ctx.send(anglen.eta(text))
-
-    @commands.command(description="Decrypt text from Anglen.")
-    async def from_anglen(self, ctx, *, text):
-        await ctx.send(anglen.ate(text))
 
 
 def setup(bot):

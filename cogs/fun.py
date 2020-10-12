@@ -7,6 +7,7 @@ from main import CashewBot
 from PIL import Image
 import random
 from socket import timeout as MCTimeout
+from src import anglen
 from src import minecraft as mc, avg_image_colour
 
 
@@ -63,6 +64,17 @@ class Fun(commands.Cog):
         e.set_thumbnail(url="attachment://image.png")
 
         await ctx.send(embed=e, file=file)
+
+
+    @commands.command(
+        description="Encrypt text using the Anglen substitution cipher, "
+        "devised by DGTILL.")
+    async def to_anglen(self, ctx, *, text):
+        await ctx.send(anglen.eta(text))
+
+    @commands.command(description="Decrypt text from Anglen.")
+    async def from_anglen(self, ctx, *, text):
+        await ctx.send(anglen.ate(text))
 
 
 def setup(bot):
