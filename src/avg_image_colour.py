@@ -1,5 +1,6 @@
 
-# adapted from: https://gist.github.com/olooney/1246268#file-average_image_color-py <3
+# adapted from:
+# https://gist.github.com/olooney/1246268#file-average_image_color-py <3
 
 
 def average(i):

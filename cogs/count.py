@@ -3,7 +3,14 @@ from discord.ext import commands, tasks
 
 
 class CountingChannel:
-    def __init__(self, my_id, guild_id, last_member_id, number0, number1, fibonacci):
+    def __init__(
+            self,
+            my_id,
+            guild_id,
+            last_member_id,
+            number0,
+            number1,
+            fibonacci):
         self.id = my_id
         self.guild_id = guild_id
         self.last_member_id = last_member_id
@@ -25,9 +32,9 @@ class Counting(commands.Cog):
         int(message.content)
         return True
 
-
-    @commands.command(description="Toggle counting on/off for the current channel.",
-                      brief="Manage Channels permission required.")
+    @commands.command(
+        description="Toggle counting on/off for the current channel.",
+        brief="Manage Channels permission required.")
     @commands.has_guild_permissions(manage_channels=True)
     async def toggle_count(self, ctx):
         counting_channel = self.bot.get_counting_channel(guild_id=ctx.guild.id)
@@ -46,9 +53,14 @@ class Counting(commands.Cog):
             await ctx.send("Pick a starting number.")
             start_num = int((await self.bot.wait_for("message", check=self.msg_int_check, timeout=20)).content)
 
-            self.bot.counting_channels.append(CountingChannel(
-                ctx.channel.id, ctx.guild.id, self.bot.user.id, start_num, 1, False
-            ))
+            self.bot.counting_channels.append(
+                CountingChannel(
+                    ctx.channel.id,
+                    ctx.guild.id,
+                    self.bot.user.id,
+                    start_num,
+                    1,
+                    False))
 
             await ctx.send(f"**Let the counting begin!**\n{start_num}")
 
@@ -59,7 +71,6 @@ class Counting(commands.Cog):
             ))
 
             await ctx.send("**Let the counting begin!**\n1\n1")
-
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -89,15 +100,14 @@ class Counting(commands.Cog):
             self.bot.counting_channels[i].num1 = 1
             self.bot.counting_channels[i].num0 = int(content)
 
-
     @tasks.loop(minutes=3)
     async def count_backup(self):
         for c in self.bot.counting_channels:
             await db_interface.dump_count_data(self.bot.db, c.guild_id, c.id, c.last_member_id,
                                                c.num0, c.num1, c.fibonacci)
 
-
-    @commands.command(description="Returns the last recorded count for this guild.")
+    @commands.command(
+        description="Returns the last recorded count for this guild.")
     @commands.guild_only()
     async def last_count(self, ctx):
         data = self.bot.get_counting_channel(guild_id=ctx.guild.id)

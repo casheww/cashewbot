@@ -3,14 +3,19 @@ import functools
 import discord
 from discord.ext import commands
 from custom_checks import uno_enabled,\
-            uno_player_channel, uno_current_player,\
-            uno_game_in_progress, uno_game_not_in_progress
-import db_interface, json
+    uno_player_channel, uno_current_player,\
+    uno_game_in_progress, uno_game_not_in_progress
+import db_interface
+import json
 import src.uno_base_objects as uno_base
 
 
 def get_uno_colour(top_card: uno_base.Card) -> int:
-    colour_dict = {"blue": 0x5555ff, "green": 0x55aa55, "red": 0xff5555, "yellow": 0xffaa00}
+    colour_dict = {
+        "blue": 0x5555ff,
+        "green": 0x55aa55,
+        "red": 0xff5555,
+        "yellow": 0xffaa00}
     try:
         colour = colour_dict[top_card.colour]
     except KeyError:
@@ -21,10 +26,10 @@ def get_uno_colour(top_card: uno_base.Card) -> int:
 
 class UnoGame(commands.Cog):
     """ In-discord Uno games --- for Dreamers """
+
     def __init__(self, bot):
         self.bot = bot
         self.bot.uno_games = {}
-
 
     async def uno_broadcast(self, game: uno_base.Game, embed: discord.Embed, fp: str = None):
         players = game.player_list
@@ -35,20 +40,21 @@ class UnoGame(commands.Cog):
             await channel.send(file=file, embed=embed)
             await asyncio.sleep(0.5)
 
-
     async def uno_turn_embed(self, event: str, top_card: uno_base.Card, next_player: uno_base.Player):
         colour = get_uno_colour(top_card)
         user = self.bot.get_user(next_player.member_id)
 
-        embed = discord.Embed(colour=colour, description=event.replace("*", user.mention))
+        embed = discord.Embed(
+            colour=colour, description=event.replace(
+                "*", user.mention))
         embed.set_author(name="\u200B", icon_url=user.avatar_url)
         embed.add_field(name="\u200B", value=f"Last card: `{top_card.name}`")
-        embed.set_footer(text=f"{user.display_name} has {len(next_player.cards)} cards.")
+        embed.set_footer(
+            text=f"{user.display_name} has {len(next_player.cards)} cards.")
 
         fp = top_card.img_path
 
         return embed, fp
-
 
     async def clear_uno(self, game: uno_base.Game, winner=None):
         uno_chat_id = game.uno_chat_id
@@ -86,7 +92,6 @@ class UnoGame(commands.Cog):
         if not persist:
             await cat.delete()
 
-
     @commands.Cog.listener()
     async def on_card_played(self, game: uno_base.Game, *, effect: str = ""):
 
@@ -94,7 +99,9 @@ class UnoGame(commands.Cog):
             if len(p.cards) == 0:
                 uno_chat = self.bot.get_channel(game.uno_chat_id)
                 async with uno_chat.typing():
-                    member = self.bot.get_guild(game.guild_id).get_member(p.member_id)
+                    member = self.bot.get_guild(
+                        game.guild_id).get_member(
+                        p.member_id)
                     await self.clear_uno(game, member)
                 return
 
@@ -122,10 +129,10 @@ class UnoGame(commands.Cog):
         embed, fp = await self.uno_turn_embed(start_str, game.pond.top_card, next_player=game.player_list[0])
         await self.uno_broadcast(game, embed, fp)
 
-
-    @commands.command(description="Toggles Uno functionality for this server. ",
-                      brief="Manage Server permission required.\n"
-                            "There must be no Uno games in progress.")
+    @commands.command(
+        description="Toggles Uno functionality for this server. ",
+        brief="Manage Server permission required.\n"
+        "There must be no Uno games in progress.")
     @uno_game_not_in_progress()
     @commands.has_guild_permissions(manage_guild=True)
     async def toggle_uno(self, ctx):
@@ -138,7 +145,8 @@ class UnoGame(commands.Cog):
             await ctx.send("Uno functionality now **disabled** for this server.")
 
         else:
-            guild_info['uno'] = False       # bool represents uno chat persistence toggle
+            # bool represents uno chat persistence toggle
+            guild_info['uno'] = False
             self.bot.uno_guilds[ctx.guild.id] = False
 
             await ctx.send(f"Uno functionality now **enabled** for this server!")
@@ -146,21 +154,21 @@ class UnoGame(commands.Cog):
         info = json.dumps(guild_info)
         await db_interface.dump_guild_data(self.bot.db, ctx.guild.id, info)
 
-
-    @commands.group(description="Command group for in-game commands.",
-                    aliases=["u"],
-                    brief="Uno must be enabled for this server. (`toggle_uno` command). "
-                          "This applies to all subcommands.")
+    @commands.group(
+        description="Command group for in-game commands.",
+        aliases=["u"],
+        brief="Uno must be enabled for this server. (`toggle_uno` command). "
+        "This applies to all subcommands.")
     @uno_enabled()
     async def uno(self, ctx):
         ...
 
-
-    @uno.command(description="Toggles persistence of the Uno chat and "
-                             "category after the game is complete. This allows admins "
-                             "to mute the category if not participating, and this mute "
-                             "will carry over to future games. Yw, Gerog.",
-                 brief="Manage Server permission required.")
+    @uno.command(
+        description="Toggles persistence of the Uno chat and "
+        "category after the game is complete. This allows admins "
+        "to mute the category if not participating, and this mute "
+        "will carry over to future games. Yw, Gerog.",
+        brief="Manage Server permission required.")
     async def toggle_persistence(self, ctx):
         guild_info = await db_interface.get_guild_data(self.bot.db, ctx.guild.id)
 
@@ -172,11 +180,11 @@ class UnoGame(commands.Cog):
         info = json.dumps(guild_info)
         await db_interface.dump_guild_data(self.bot.db, ctx.guild.id, info)
 
-
-    @uno.command(description="Starts an Uno game. List players and leave a space between each. "
-                             "Player can be as ID, mention, name#0001, name, or nickname.",
-                 brief="There must be no Uno games in progress.\n"
-                       "Manage Server permission required.")
+    @uno.command(
+        description="Starts an Uno game. List players and leave a space between each. "
+        "Player can be as ID, mention, name#0001, name, or nickname.",
+        brief="There must be no Uno games in progress.\n"
+        "Manage Server permission required.")
     @commands.has_guild_permissions(manage_guild=True)
     @uno_game_not_in_progress()
     async def start_game(self, ctx, members: commands.Greedy[discord.Member]):
@@ -194,7 +202,8 @@ class UnoGame(commands.Cog):
             player_channel_dict = {}
 
             # to allow for single-player testing games
-            members = [members] if isinstance(members, discord.Member) else members
+            members = [members] if isinstance(
+                members, discord.Member) else members
 
             for m in members:
                 uno_chat_over[m] = can_read_perm
@@ -231,10 +240,9 @@ class UnoGame(commands.Cog):
             self.bot.dispatch("card_played", game)
             await uno_chat.send(embed=embed)
 
-
     @uno.command(description="Ends the game without a winner.",
-                  brief="There must be an Uno game in progress."
-                        "Manage Server permission required.")
+                 brief="There must be an Uno game in progress."
+                 "Manage Server permission required.")
     @commands.has_guild_permissions(manage_guild=True)
     @uno_game_in_progress()
     async def end_game(self, ctx):
@@ -242,11 +250,11 @@ class UnoGame(commands.Cog):
             game = self.bot.uno_games[ctx.guild.id]
             await self.clear_uno(game)
 
-
-    @uno.command(description="Plays a card from your hand. Card format ex.: `blue.1`, `misc.wild colour`.",
-                 brief="Must be playing in active Uno game.\n"
-                       "Must be used in Uno player channel\n"
-                       "Must be your turn.")
+    @uno.command(
+        description="Plays a card from your hand. Card format ex.: `blue.1`, `misc.wild colour`.",
+        brief="Must be playing in active Uno game.\n"
+        "Must be used in Uno player channel\n"
+        "Must be your turn.")
     @uno_game_in_progress()
     @uno_player_channel()
     @uno_current_player()
@@ -257,13 +265,14 @@ class UnoGame(commands.Cog):
             except IndexError:
                 return await ctx.send("Wildcard syntax: `misc.wild colour`, `misc.wild4 colour`")
 
-
         game: uno_base.Game = self.bot.uno_games[ctx.guild.id]
         e = discord.Embed(colour=get_uno_colour(game.pond.top_card))
         e.set_author(name="\u200B", icon_url=ctx.author.avatar_url)
 
         power_effect = game.move_card(str(ctx.author.id), "pond", card_name)
-        e.add_field(name="\u200B", value=f"{ctx.author.mention} played card `{card_name}`")
+        e.add_field(
+            name="\u200B",
+            value=f"{ctx.author.mention} played card `{card_name}`")
 
         if power_effect == "" and not card_name.startswith("misc"):
             fp = f"assets/uno-cards/numbers/{card_name}.png"
@@ -272,7 +281,6 @@ class UnoGame(commands.Cog):
 
         await self.uno_broadcast(game, e, fp)
         self.bot.dispatch("card_played", game, effect=power_effect)
-
 
     @uno.command(description="Shows you your hand of cards.",
                  aliases=['hand', 'mycards'],
@@ -297,7 +305,6 @@ class UnoGame(commands.Cog):
 
         await ctx.send(file=f, embed=e)
 
-
     @uno.command(description="Draws a card from the deck.",
                  brief="Must be playing in active Uno game.\n"
                        "Must be used in Uno player channel.\n"
@@ -317,7 +324,8 @@ class UnoGame(commands.Cog):
         await cards_command.__call__(ctx)
 
         e.description = f"{ctx.author.mention} has drawn a card."
-        # didn't use broadcasting func b/c otherwise info is send to author twice
+        # didn't use broadcasting func b/c otherwise info is send to author
+        # twice
         for p in game.player_list:
             if p.member_id != ctx.author.id:
                 c = self.bot.get_channel(p.channel_id)

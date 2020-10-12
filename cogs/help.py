@@ -43,12 +43,14 @@ class CustomHelp(commands.HelpCommand):
                     if command.hidden:
                         cog_size -= 1
 
-                e.add_field(name=f"{cog.qualified_name}", value=f"{cog_size} {plural_command(cog_size)}")
+                e.add_field(
+                    name=f"{cog.qualified_name}",
+                    value=f"{cog_size} {plural_command(cog_size)}")
 
-        e.set_footer(text="Try `help [category]` for a list of the category's commands.")
+        e.set_footer(
+            text="Try `help [category]` for a list of the category's commands.")
 
         await destination.send(embed=e)
-
 
     async def send_cog_help(self, cog):
 
@@ -65,12 +67,13 @@ class CustomHelp(commands.HelpCommand):
 
         cmd_list = await commands.HelpCommand.filter_commands(self, cog.get_commands())
         for command in cmd_list:
-            e.add_field(name=f"{command.qualified_name}", value=f"{command.description.split('.')[0]}.")
+            e.add_field(
+                name=f"{command.qualified_name}",
+                value=f"{command.description.split('.')[0]}.")
 
         e.set_footer(text="Try `help [command/group]` for a more details.")
 
         await destination.send(embed=e)
-
 
     async def send_command_help(self, command):
 
@@ -85,34 +88,46 @@ class CustomHelp(commands.HelpCommand):
         e = discord.Embed(colour=ctx.colour,
                           title=command.qualified_name,
                           description=f"*(command)*\n{command.description}")
-        e.add_field(name="Syntax", value=f"`{self.clean_prefix}{' '.join(sig)}`", inline=False)
+        e.add_field(
+            name="Syntax",
+            value=f"`{self.clean_prefix}{' '.join(sig)}`",
+            inline=False)
 
         if command.brief:
-            e.add_field(name="User conditions", value=f"{command.brief}", inline=False)
+            e.add_field(
+                name="User conditions",
+                value=f"{command.brief}",
+                inline=False)
 
         if command.aliases:
-            e.set_footer(text=f"Aliases: [{', '.join([a for a in command.aliases])}]")
+            e.set_footer(
+                text=f"Aliases: [{', '.join([a for a in command.aliases])}]")
 
         await destination.send(embed=e)
-
 
     async def send_group_help(self, group):
 
         ctx = self.context
         destination = self.get_destination()
 
-        e = discord.Embed(colour=ctx.colour,
-                          title=group.qualified_name,
-                          description=f"*(command group)*\n{group.description}")
-        e.add_field(name="User conditions", value=f"{group.brief}", inline=False)
-        e.add_field(name="Subcommands", value=f"`{'`, `'.join([c.qualified_name for c in group.commands])}`",
-                    inline=False)
+        e = discord.Embed(
+            colour=ctx.colour,
+            title=group.qualified_name,
+            description=f"*(command group)*\n{group.description}")
+        e.add_field(
+            name="User conditions",
+            value=f"{group.brief}",
+            inline=False)
+        e.add_field(
+            name="Subcommands",
+            value=f"`{'`, `'.join([c.qualified_name for c in group.commands])}`",
+            inline=False)
 
         if group.aliases:
-            e.set_footer(text=f"Aliases: [{', '.join([a for a in group.aliases])}]")
+            e.set_footer(
+                text=f"Aliases: [{', '.join([a for a in group.aliases])}]")
 
         await destination.send(embed=e)
-
 
     async def command_callback(self, ctx, *, command=None):
         """ Mostly the same as the original, but modified to use
@@ -155,7 +170,6 @@ class CustomHelp(commands.HelpCommand):
             return await self.send_group_help(cmd)
         else:
             return await self.send_command_help(cmd)
-
 
     async def send_error_message(self, error):
         await self.get_destination().send(error)

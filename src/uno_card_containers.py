@@ -10,6 +10,7 @@ from typing import Union
 class CardContainer:
     """ Base class for places where cards are
         stored at any point in the game. """
+
     def __init__(self):
         self.cards = []
 
@@ -34,7 +35,6 @@ class CardContainer:
         return self.cards.pop(self.cards.index(target_card))
 
 
-
 class Player(CardContainer):
     def __init__(self, member_id: int, channel_id: int, guild_id: int):
         super().__init__()
@@ -50,13 +50,14 @@ class Player(CardContainer):
         image_list = [Image.open(fp) for fp in path_list]
         fp = f"src/uno-temp/{self.guild_id}{self.member_id}.png"
 
-        img = Image.new("RGBA", ((143+10)*len(image_list), 214), (1, 0, 0, 0))
+        img = Image.new(
+            "RGBA", ((143 + 10) * len(image_list), 214), (1, 0, 0, 0))
         img.paste(image_list.pop(0))
         img.save(fp)
 
         for image in image_list:
             img = Image.open(fp)
-            box = ((143 + 10) * (image_list.index(image)+1), 0)
+            box = ((143 + 10) * (image_list.index(image) + 1), 0)
             img.paste(image, box)
             img.save(fp)
 
@@ -67,6 +68,7 @@ class Player(CardContainer):
 class Pond(CardContainer):
     """ Where cards go after they're played. There should only
         ever be one card here. Previous card goes to the deck. """
+
     def __init__(self):
         super().__init__()
         self.top_card = None
@@ -103,7 +105,8 @@ class Pond(CardContainer):
         else:
             raise IncorrectCard
 
-        c = card.to_colour if hasattr(card, "to_colour") and card.to_colour is not None else card.colour    # forgive me
+        c = card.to_colour if hasattr(
+            card, "to_colour") and card.to_colour is not None else card.colour    # forgive me
         v = card.power if hasattr(card, "power") else card.number
         self.edit_top(card, c, v)
 
@@ -124,7 +127,6 @@ class Pond(CardContainer):
         self.top_value = value
 
 
-
 class Deck(CardContainer):
     def __init__(self):
         super().__init__()
@@ -137,7 +139,6 @@ class Deck(CardContainer):
         for pow_card in os.listdir("src/uno-cards/powers"):
             for i in range(4):
                 self.cards.append(PowerCard(pow_card[:-4]))
-
 
     def draw(self, number: int) -> List[Card]:
         """ Returns a list of random Cards and removes
