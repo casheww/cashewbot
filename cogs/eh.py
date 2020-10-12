@@ -7,13 +7,17 @@ class EH(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
 
         try:
-            if hasattr(ctx.command, 'on_error') or hasattr(ctx, 'handled_locally') or \
-                    hasattr(ctx.command.parent, 'on_error'):
+            if hasattr(
+                ctx.command,
+                'on_error') or hasattr(
+                ctx,
+                'handled_locally') or hasattr(
+                ctx.command.parent,
+                    'on_error'):
                 return
         except (AttributeError, TypeError):
             pass

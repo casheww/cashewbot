@@ -3,9 +3,17 @@ import discord.channel
 
 
 class Game:
-    def __init__(self, guild_id: int, uno_chat: discord.TextChannel, m_c_dict: dict):
+    def __init__(
+            self,
+            guild_id: int,
+            uno_chat: discord.TextChannel,
+            m_c_dict: dict):
         self.guild_id = guild_id
-        self.player_list = [Player(m_id, m_c_dict[m_id], guild_id) for m_id in m_c_dict.keys()]
+        self.player_list = [
+            Player(
+                m_id,
+                m_c_dict[m_id],
+                guild_id) for m_id in m_c_dict.keys()]
         self.uno_chat_id = uno_chat.id
         self.deck = Deck()
         self.pond = Pond()
@@ -18,7 +26,6 @@ class Game:
         while pond_starting_card.colour == "misc":
             pond_starting_card = self.deck.pull_random_card()
         self.pond.add_card(pond_starting_card)
-
 
     def get_player(self, member_id) -> Player:
         for p in self.player_list:
@@ -41,7 +48,8 @@ class Game:
         start = self.get_container(start)
         end = self.get_container(end)
 
-        card = start.pull_card(card_name.split()[0])        # split in case of: `misc.wild colour`
+        # split in case of: `misc.wild colour`
+        card = start.pull_card(card_name.split()[0])
 
         if card_name.startswith("misc"):
             card.to_colour = card_name.split()[1]

@@ -13,10 +13,11 @@ from src.context import CustomContext
 class CashewBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.all()
-        super().__init__(command_prefix=self.get_prefix,
-                         case_insensitive=True,
-                         intents=intents,
-                         description="A generic Discord bot... Written by casheww in Python.")
+        super().__init__(
+            command_prefix=self.get_prefix,
+            case_insensitive=True,
+            intents=intents,
+            description="A generic Discord bot... Written by casheww in Python.")
 
         self.db = None
         self.counting_channels = []
@@ -29,7 +30,6 @@ class CashewBot(commands.Bot):
         self.version = "4.2.1"
         self.web = None
 
-
     async def get_prefix(self, message):
         default_prefix = "##"
 
@@ -41,29 +41,34 @@ class CashewBot(commands.Bot):
 
         return default_prefix
 
-
     async def get_context(self, message, *, cls=None):
         return await super().get_context(message, cls=cls or CustomContext)
-
 
     @staticmethod
     def format_counting_data(data):
         formatted = []
         for g in data:
             fib = True if g[5] == 1 else False
-            formatted.append(CountingChannel(g[1], g[0], g[2], g[3], g[4], fib))
+            formatted.append(
+                CountingChannel(
+                    g[1],
+                    g[0],
+                    g[2],
+                    g[3],
+                    g[4],
+                    fib))
         return formatted
-
 
     def get_counting_channel(self, **kwargs):
         try:
             if "channel_id" in kwargs:
-                return [c for c in self.counting_channels if c.id == kwargs["channel_id"]][0]
+                return [c for c in self.counting_channels if c.id ==
+                        kwargs["channel_id"]][0]
             elif "guild_id" in kwargs:
-                return [c for c in self.counting_channels if c.guild_id == kwargs["guild_id"]][0]
+                return [
+                    c for c in self.counting_channels if c.guild_id == kwargs["guild_id"]][0]
         except IndexError:
             return None
-
 
     async def on_message(self, message):
         if self.get_counting_channel(channel_id=message.channel.id) and \
@@ -72,8 +77,6 @@ class CashewBot(commands.Bot):
             return
 
         await self.process_commands(message)
-
-
 
     async def startup(self):
         await self.wait_until_ready()

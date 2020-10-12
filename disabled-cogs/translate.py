@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
 from src import anglen
-import db_interface, json
+import db_interface
+import json
 
 
 with open('_keys.json') as file:
@@ -31,7 +32,6 @@ class Translate(commands.Cog):
         except KeyError:
             return ['error']
 
-
     @commands.command(description="Translates text to English.")
     async def en(self, ctx, *, text):
         data = await self.to_target_lang(text, "en")
@@ -39,7 +39,6 @@ class Translate(commands.Cog):
             await ctx.send(f"*{ctx.author.name} --- {data[1]}* :\n{data[0]}")
         else:
             await ctx.send("Invalid language code")
-
 
     @commands.command(description="Translates text to a target language.")
     async def translate(self, ctx, target_language: str, *, text):
@@ -49,12 +48,12 @@ class Translate(commands.Cog):
         else:
             await ctx.send("Invalid language code")
 
-
-    @commands.command(description="Use in a channel to take in messages in another language to be translated. "
-                                  "Translations to the target language are output to the out_channel. "
-                                  "Compatible langs: "
-                                  "https://tech.yandex.com/translate/doc/dg/concepts/api-overview-docpage/#api-overview__languages .",
-                      brief="Manage Server permission Required.")
+    @commands.command(
+        description="Use in a channel to take in messages in another language to be translated. "
+        "Translations to the target language are output to the out_channel. "
+        "Compatible langs: "
+        "https://tech.yandex.com/translate/doc/dg/concepts/api-overview-docpage/#api-overview__languages .",
+        brief="Manage Server permission Required.")
     @commands.has_guild_permissions(manage_guild=True)
     async def toggle_lang_tunnel(self, ctx, out_channel: discord.TextChannel = None, target_language: str = 'en'):
         guild_info = await db_interface.get_guild_data(self.bot.db, ctx.guild.id)
@@ -71,7 +70,10 @@ class Translate(commands.Cog):
                     f'An out_channel must be defined to enable this feature. E.g.: toggle_lang_tunnel {ctx.channel.mention} en')
                 return
 
-            guild_info['lang'] = {'in': ctx.channel.id, 'out': out_channel.id, 'outlang': target_language}
+            guild_info['lang'] = {
+                'in': ctx.channel.id,
+                'out': out_channel.id,
+                'outlang': target_language}
 
             await ctx.send('Translation logging now **enabled** for this channel (input).')
             await out_channel.send('Translation logging now **enabled** for this channel (output).')
@@ -79,7 +81,6 @@ class Translate(commands.Cog):
         info = json.dumps(guild_info)
 
         await db_interface.dump_guild_data(self.bot.db, ctx.guild.id, info)
-
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -93,20 +94,21 @@ class Translate(commands.Cog):
         if 'lang' not in guild_info.keys():
             return
 
-        if 'in' in guild_info['lang'].keys() and message.channel.id == guild_info['lang']['in']:
+        if 'in' in guild_info['lang'].keys(
+        ) and message.channel.id == guild_info['lang']['in']:
 
             data = await self.to_target_lang(text=message.content, target_language=guild_info['lang']['outlang'])
 
-            if data[0] != 'error' and data[1][:2] != data[1][3:]:  # en-en or fr-fr -e.g.- won't be logged
+            # en-en or fr-fr -e.g.- won't be logged
+            if data[0] != 'error' and data[1][:2] != data[1][3:]:
                 out = self.bot.get_channel(guild_info['lang']['out'])
                 await out.send(f'-----\n*{message.author} --- {data[1]}* :\n{data[0]}')
 
-
-    @commands.command(description="Encrypt text using the Anglen substitution cipher, "
-                                  "devised by DGTILL.")
+    @commands.command(
+        description="Encrypt text using the Anglen substitution cipher, "
+        "devised by DGTILL.")
     async def to_anglen(self, ctx, *, text):
         await ctx.send(anglen.eta(text))
-
 
     @commands.command(description="Decrypt text from Anglen.")
     async def from_anglen(self, ctx, *, text):

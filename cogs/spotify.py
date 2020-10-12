@@ -8,7 +8,8 @@ import re
 
 # uhhhhh get your api from https://developer.spotify.com
 with open('_keys.json') as f:
-    # this was literally the only way it would grab 2 api keys and i dont know why aaaaaaaa
+    # this was literally the only way it would grab 2 api keys and i dont know
+    # why aaaaaaaa
     shit = json.load(f)
     spot_id = shit['spotify_id']
     spot_sec = shit['spotify_sec']
@@ -18,9 +19,10 @@ class Spotify(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(description='''Grabs details on an artist or track and embeds them nicely.'
+    @commands.command(
+        description='''Grabs details on an artist or track and embeds them nicely.'
                                   Use is: `##spotifygrab <artist,track or both delimited by comma> query`  ''',
-                      aliases=['spotify'])
+        aliases=['spotify'])
     async def spotifygrab(self, ctx, reqtype, *, query):
 
         # lets actually check the input given is correct shall we
@@ -29,7 +31,8 @@ class Spotify(commands.Cog):
         outcomes = []
 
         reqtype = reqtype.split(",")
-        # if the input given is akin to a list chances are its going to be artist,track so do that
+        # if the input given is akin to a list chances are its going to be
+        # artist,track so do that
         if len(reqtype) < 2:
             # assume that the user has entered only one parameter
             # use regex to make sure the exact word is given
@@ -93,7 +96,8 @@ class Spotify(commands.Cog):
         # (idk this is barebones kind of probably add it to it later)
         headers = {"Authorization": "Bearer %s" % token}
 
-        # right listen this was the only way that worked with requests so im keeping it
+        # right listen this was the only way that worked with requests so im
+        # keeping it
         async with self.bot.web.get("https://api.spotify.com/v1/search?q=" + query + "&type=" + reqtype, headers=headers) as r:
             res = await r.json()
 
@@ -105,14 +109,19 @@ class Spotify(commands.Cog):
                 print("idk something fucked up here")
 
             else:
-                e = discord.Embed(title="Top Result for Artist", colour=discord.Colour.green())
+                e = discord.Embed(
+                    title="Top Result for Artist",
+                    colour=discord.Colour.green())
                 e.set_thumbnail(url=artist['images'][2]['url'])
                 e.add_field(name="Artist Name:", value=artist['name'])
-                e.add_field(name="Info:", value=f"[Artist's page]({artist['external_urls']['spotify']})\n"
-                                               f"Followers: {artist['followers']['total']}")
+                e.add_field(
+                    name="Info:",
+                    value=f"[Artist's page]({artist['external_urls']['spotify']})\n"
+                    f"Followers: {artist['followers']['total']}")
 
                 if artist['genres']:
-                    e.add_field(name="Genres:", value=", ".join(artist['genres'][:2]))
+                    e.add_field(name="Genres:",
+                                value=", ".join(artist['genres'][:2]))
 
                 await ctx.send(embed=e)
 
@@ -124,19 +133,33 @@ class Spotify(commands.Cog):
                 return
 
             else:
-                e = discord.Embed(title="Top Result For Tracks", colour = discord.Colour.green())
+                e = discord.Embed(
+                    title="Top Result For Tracks",
+                    colour=discord.Colour.green())
                 e.set_thumbnail(url=tracks['album']['images'][2]['url'])
                 e.add_field(name="Track Name:", value=tracks['name'])
-                e.add_field(name="Track:", value=f"[Click me!]({tracks['external_urls']['spotify']})")
+                e.add_field(
+                    name="Track:",
+                    value=f"[Click me!]({tracks['external_urls']['spotify']})")
 
                 try:
-                    e.add_field(name="Artists: ", value=tracks['artists'][0]['name']+","+tracks['artists'][1]['name'] +
-                                                        ","+tracks['artists'][2]['name'])
+                    e.add_field(
+                        name="Artists: ",
+                        value=tracks['artists'][0]['name'] +
+                        "," +
+                        tracks['artists'][1]['name'] +
+                        "," +
+                        tracks['artists'][2]['name'])
                 except IndexError:
-                    e.add_field(name="Artists:", value=", ".join(a['name'] for a in tracks['artists']))
+                    e.add_field(
+                        name="Artists:", value=", ".join(
+                            a['name'] for a in tracks['artists']))
 
-                e.add_field(name="Release Date", value=tracks['album']['release_date'])
+                e.add_field(
+                    name="Release Date",
+                    value=tracks['album']['release_date'])
                 await ctx.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Spotify(bot))
