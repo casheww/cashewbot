@@ -13,11 +13,39 @@ with open('_keys.json') as f:
     shit = json.load(f)
     spot_id = shit['spotify_id']
     spot_sec = shit['spotify_sec']
+    spot_refresh_token = shit['spotify_refresh_token']
 
 
 class Spotify(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    async def fetch_client_auth(self):
+        # authentication section (grabbing a token per request probably isn't good)
+        # but fuck it i'm allowed
+
+        data = {'grant_type': 'client_credentials'}
+        async with self.bot.web.post(url="https://accounts.spotify.com/api/token", data=data,
+                                     auth=aiohttp.BasicAuth(login=spot_id, password=spot_sec)) as r:
+            resp = await r.json()
+
+            token = resp['access_token']
+        # the bread and butter of my code
+        # (idk this is barebones kind of probably add it to it later)
+        return {"Authorization": "Bearer %s" % token}
+
+
+    async def fetch_auth_flow(self):
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": spot_refresh_token
+        }
+
+        async with self.bot.web.post(url="https://accounts.spotify.com/api/token", data=data,
+                                     auth=aiohttp.BasicAuth(login=spot_id, password=spot_sec)) as r:
+            resp = await r.json()
+        return resp["access_token"]
+
 
     @commands.command(
         description='''Grabs details on an artist or track and embeds them nicely.'
@@ -83,18 +111,7 @@ class Spotify(commands.Cog):
         # uhhh i didn't anticipate the user to delimit with a space but fuck it
         # they'll get some wacky search results
 
-        # authentication section (grabbing a token per request probably isn't good)
-        # but fuck it i'm allowed
-
-        data = {'grant_type': 'client_credentials'}
-        async with self.bot.web.post(url="https://accounts.spotify.com/api/token", data=data,
-                                     auth=aiohttp.BasicAuth(login=spot_id, password=spot_sec)) as r:
-            resp = await r.json()
-
-            token = resp['access_token']
-        # the bread and butter of my code
-        # (idk this is barebones kind of probably add it to it later)
-        headers = {"Authorization": "Bearer %s" % token}
+        headers = await self.fetch_client_auth()
 
         # right listen this was the only way that worked with requests so im
         # keeping it
@@ -159,6 +176,36 @@ class Spotify(commands.Cog):
                     name="Release Date",
                     value=tracks['album']['release_date'])
                 await ctx.send(embed=e)
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def sp_collate(self, ctx, playlist_id, limit: int = 100):
+        if limit == 0:
+            limit = None
+
+        tracks = []
+        async for m in ctx.channel.history(limit=limit):
+            if m.content.startswith("https://open.spotify.com/track/"):
+                print("a")
+                track_uri = (m.content.split("/")[-1]).split("?")[0]
+                tracks.append(track_uri)
+
+                if len(tracks) > 100:
+                    break
+
+        headers = {
+            "Authorization": f"Bearer {await self.fetch_auth_flow()}",
+            "Content-Type": "application/json"
+        }
+        data = {"uris": [f"spotify:track:{u}" for u in tracks]}
+
+        async with self.bot.web.post(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", headers=headers,
+                                     json=data) as r:
+            res = await r.json()
+            print(res)
+
+        await ctx.send(f"{len(tracks)} added to playlist @ {playlist_id}")
+
 
 
 def setup(bot):
