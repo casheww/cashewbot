@@ -75,6 +75,14 @@ class Fun(commands.Cog):
     async def from_anglen(self, ctx, *, text):
         await ctx.send(anglen.ate(text))
 
+    @commands.command(description=":) https://http.cat/",
+                      aliases=["http"])
+    async def httpcat(self, ctx, code: int):
+        async with self.bot.web.get(f"https://http.cat/{code}.jpg") as r:
+            buffer = io.BytesIO(await r.content.read())
+
+        file = discord.File(fp=buffer, filename=f"{code}.jpg")
+        await ctx.send(file=file)
 
 def setup(bot):
     bot.add_cog(Fun(bot))
