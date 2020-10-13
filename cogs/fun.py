@@ -84,5 +84,6 @@ class Fun(commands.Cog):
         file = discord.File(fp=buffer, filename=f"{code}.jpg")
         await ctx.send(file=file)
 
+
 def setup(bot):
     bot.add_cog(Fun(bot))
