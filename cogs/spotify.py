@@ -34,8 +34,10 @@ class Spotify(commands.Cog):
         # (idk this is barebones kind of probably add it to it later)
         return {"Authorization": "Bearer %s" % token}
 
-
     async def fetch_auth_flow(self):
+        # https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
+        # this is step 3 or something. the rest of the code is only necessary
+        # once to get up to here.
         data = {
             "grant_type": "refresh_token",
             "refresh_token": spot_refresh_token
@@ -45,7 +47,6 @@ class Spotify(commands.Cog):
                                      auth=aiohttp.BasicAuth(login=spot_id, password=spot_sec)) as r:
             resp = await r.json()
         return resp["access_token"]
-
 
     @commands.command(
         description='''Grabs details on an artist or track and embeds them nicely.'
@@ -205,7 +206,6 @@ class Spotify(commands.Cog):
             print(res)
 
         await ctx.send(f"{len(tracks)} added to playlist @ {playlist_id}")
-
 
 
 def setup(bot):
