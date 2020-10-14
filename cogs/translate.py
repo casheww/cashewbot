@@ -13,13 +13,19 @@ class Languages(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # is this assuming the source language is english? fuck it lets just set it to auto
+    # is this assuming the source language is english? fuck it lets just set
+    # it to auto
     async def to_target_lang(self, text: str, target_language: str):
 
         aiohttp_session = aiohttp.ClientSession()
 
         # i dont know what half of these parameters do
-        params = {'client': 'gtx', 'sl': 'auto', 'tl': target_language, 'dt': 't', 'q': text}
+        params = {
+            'client': 'gtx',
+            'sl': 'auto',
+            'tl': target_language,
+            'dt': 't',
+            'q': text}
         async with aiohttp_session.post(url=url, params=params) as r:
             j = await r.json()
 
@@ -39,8 +45,7 @@ class Languages(commands.Cog):
             await ctx.send(f"*{ctx.author.name} --- {data[1]}* : \n{data[0]}")
         else:
             await ctx.send("Invalid language code")
-            
-    
+
     @commands.command(description="Translates text to a target language.")
     async def translate(self, ctx, target_language: str, *, text):
         data = await self.to_target_lang(text, target_language)
@@ -98,6 +103,7 @@ class Languages(commands.Cog):
             if data[0] != 'error' and data[1][:2] != data[1][3:]:
                 out = self.bot.get_channel(guild_info['lang']['out'])
                 await out.send(f'-----\n*{message.author} --- {data[1]}* :\n{data[0]}')
+
 
 def setup(bot):
     bot.add_cog(Languages(bot))
