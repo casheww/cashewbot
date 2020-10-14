@@ -2,43 +2,45 @@ import discord
 from discord.ext import commands
 import db_interface
 import json
+import aiohttp
+
+# no api key? no problem :smug:
+
+url = "https://translate.googleapis.com/translate_a/single"
 
 
-with open('_keys.json') as file:
-    keys = json.load(file)
-    yandex_key = keys['yandex']
-
-y_link = "https://translate.yandex.net/api/v1.5/tr.json/translate"
-
-
-class Translate(commands.Cog):
+class Languages(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    # is this assuming the source language is english? fuck it lets just set it to auto
     async def to_target_lang(self, text: str, target_language: str):
-        aiohttp_session = self.bot.web
 
-        params = {'key': yandex_key, 'text': text, 'lang': target_language}
-        async with aiohttp_session.post(url=y_link, params=params) as r:
+        aiohttp_session = aiohttp.ClientSession()
+
+        # i dont know what half of these parameters do
+        params = {'client': 'gtx', 'sl': 'auto', 'tl': target_language, 'dt': 't', 'q': text}
+        async with aiohttp_session.post(url=url, params=params) as r:
             j = await r.json()
 
         try:
-            final_text = j['text'][0]
-            translate_info = j['lang']
-
+            final_text = j[0][0][0]
+            translate_info = j[2]
             return [final_text, translate_info]
 
         except KeyError:
-            return ['error']
+            return ["fuck"]
 
-    @commands.command(description="Translates text to English.")
+    @commands.command(description="Translates text to english.")
     async def en(self, ctx, *, text):
         data = await self.to_target_lang(text, "en")
-        if data[0] != "error":
-            await ctx.send(f"*{ctx.author.name} --- {data[1]}* :\n{data[0]}")
+        # nice error handling i see what you did here cash man
+        if data[0] != "fuck":
+            await ctx.send(f"*{ctx.author.name} --- {data[1]}* : \n{data[0]}")
         else:
             await ctx.send("Invalid language code")
-
+            
+    
     @commands.command(description="Translates text to a target language.")
     async def translate(self, ctx, target_language: str, *, text):
         data = await self.to_target_lang(text, target_language)
@@ -47,12 +49,6 @@ class Translate(commands.Cog):
         else:
             await ctx.send("Invalid language code")
 
-    @commands.command(
-        description="Use in a channel to take in messages in another language to be translated. "
-        "Translations to the target language are output to the out_channel. "
-        "Compatible langs: "
-        "https://tech.yandex.com/translate/doc/dg/concepts/api-overview-docpage/#api-overview__languages .",
-        brief="Manage Server permission Required.")
     @commands.has_guild_permissions(manage_guild=True)
     async def toggle_lang_tunnel(self, ctx, out_channel: discord.TextChannel = None, target_language: str = 'en'):
         guild_info = await db_interface.get_guild_data(self.bot.db, ctx.guild.id)
@@ -103,6 +99,5 @@ class Translate(commands.Cog):
                 out = self.bot.get_channel(guild_info['lang']['out'])
                 await out.send(f'-----\n*{message.author} --- {data[1]}* :\n{data[0]}')
 
-
 def setup(bot):
-    bot.add_cog(Translate(bot))
+    bot.add_cog(Languages(bot))
