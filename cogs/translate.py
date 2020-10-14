@@ -15,27 +15,26 @@ class Languages(commands.Cog):
 
     # is this assuming the source language is english? fuck it lets just set
     # it to auto
-    async def to_target_lang(self, text: str, target_language: str):
+    @staticmethod
+    async def to_target_lang(text: str, target_language: str):
+        async with aiohttp.ClientSession() as aiohttp_session:
 
-        aiohttp_session = aiohttp.ClientSession()
+            params = {
+                'client': 'gtx',
+                'sl': 'auto',
+                'tl': target_language,
+                'dt': 't',
+                'q': text}
+            async with aiohttp_session.post(url=url, params=params) as r:
+                j = await r.json()
 
-        # i dont know what half of these parameters do
-        params = {
-            'client': 'gtx',
-            'sl': 'auto',
-            'tl': target_language,
-            'dt': 't',
-            'q': text}
-        async with aiohttp_session.post(url=url, params=params) as r:
-            j = await r.json()
+            try:
+                final_text = j[0][0][0]
+                translate_info = j[2]
+                return [final_text, translate_info]
 
-        try:
-            final_text = j[0][0][0]
-            translate_info = j[2]
-            return [final_text, translate_info]
-
-        except KeyError:
-            return ["fuck"]
+            except KeyError:
+                return ["fuck"]
 
     @commands.command(description="Translates text to english.")
     async def en(self, ctx, *, text):
@@ -54,6 +53,9 @@ class Languages(commands.Cog):
         else:
             await ctx.send("Invalid language code")
 
+    @commands.command(description="Sets an auto-translation tunnel. "
+                                  "Translations are sent to the out_channel.",
+                      brief="Manage Server permissions required.")
     @commands.has_guild_permissions(manage_guild=True)
     async def toggle_lang_tunnel(self, ctx, out_channel: discord.TextChannel = None, target_language: str = 'en'):
         guild_info = await db_interface.get_guild_data(self.bot.db, ctx.guild.id)
@@ -78,9 +80,7 @@ class Languages(commands.Cog):
             await ctx.send('Translation logging now **enabled** for this channel (input).')
             await out_channel.send('Translation logging now **enabled** for this channel (output).')
 
-        info = json.dumps(guild_info)
-
-        await db_interface.dump_guild_data(self.bot.db, ctx.guild.id, info)
+        await db_interface.dump_guild_data(self.bot.db, ctx.guild.id, guild_info)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -94,13 +94,13 @@ class Languages(commands.Cog):
         if 'lang' not in guild_info.keys():
             return
 
-        if 'in' in guild_info['lang'].keys(
-        ) and message.channel.id == guild_info['lang']['in']:
+        if 'in' in guild_info['lang'].keys() and \
+                message.channel.id == guild_info['lang']['in']:
 
             data = await self.to_target_lang(text=message.content, target_language=guild_info['lang']['outlang'])
 
             # en-en or fr-fr -e.g.- won't be logged
-            if data[0] != 'error' and data[1][:2] != data[1][3:]:
+            if data[0] != 'error' and data[1] != guild_info['lang']['outlang']:
                 out = self.bot.get_channel(guild_info['lang']['out'])
                 await out.send(f'-----\n*{message.author} --- {data[1]}* :\n{data[0]}')
 
