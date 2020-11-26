@@ -6,6 +6,7 @@ from typing import List, Union
 Collection of helper functions for evaluating boolean algebra expressions.
 """
 
+
 def commutative_combinations(exp: str) -> List[str]:
     """
     A.B == B.A
@@ -22,6 +23,7 @@ def double_not(exp: str) -> str:
     """
     return re.sub(r"['’]{2}", "", exp)
 
+
 def numeric_not(exp: str) -> str:
     """
     1' == 0;  0' == 1
@@ -34,6 +36,7 @@ def numeric_not(exp: str) -> str:
 
     after = re.sub(r"[01]['’]", check, exp)
     return after
+
 
 def general_and(exp: str) -> str:
     # X.0 == 0;  X.X' == 0
@@ -56,6 +59,7 @@ def general_and(exp: str) -> str:
 
     return exp
 
+
 def general_or(exp: str) -> str:
     # 0+0 == 0
     exp = re.sub(r"0\+0", "0", exp)
@@ -74,6 +78,7 @@ def general_or(exp: str) -> str:
                  exp)
     return exp
 
+
 def expansion(exp: str) -> str:
     # X.(X+Y)
     ...
@@ -81,8 +86,8 @@ def expansion(exp: str) -> str:
 
 checks = [double_not, numeric_not, general_and, general_or]
 
-def _process_exp(exp: str) -> str:
 
+def _process_exp(exp: str) -> str:
 
     while not finished:
         finished = True
@@ -94,6 +99,7 @@ def _process_exp(exp: str) -> str:
                 finished = False  # if one change is made, all checks need be redone
 
     return exp
+
 
 def eval_bool_exp(exp: Union[str, re.Match]) -> str:
     if hasattr(exp, "group"):
