@@ -1,4 +1,3 @@
-[![Discord](https://img.shields.io/discord/570630745220186132?logo=discord&style=for-the-badge)](https://discord.gg/qK5JkSG)
 
 # CashewBot
 A small general purpose Discord bot written with discord.py. An amalgamation of ideas stolen from other bots, + a few of my own.
