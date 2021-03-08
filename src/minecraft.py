@@ -20,8 +20,10 @@ def server_info(ip, port):
         }
     }
     if query.players.online != 0:
-        info["fields"][0]["value"] = "\n".join(
-            [f"‣ {n}" for n in query.players.names])
+        if query.players.names != []:
+            info["fields"][0]["value"] = "\n".join(
+                [f"‣ {n}" for n in query.players.names])
+        
     else:
         info["fields"][0]["value"] = "No-one's home :("
 
