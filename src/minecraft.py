@@ -11,7 +11,7 @@ def server_info(ip, port):
         "fields": [
             {
                 "name": f"{query.players.online}/{query.players.max} players",
-                "value": "",
+                "value": "Names not provided",
                 "inline": False
             },
         ],
