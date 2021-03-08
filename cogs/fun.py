@@ -49,7 +49,7 @@ class Fun(commands.Cog):
             return await ctx.send("Server connection timed out.")
 
         e = discord.Embed.from_dict(data)
-        
+
         file = None
         if icon_data:
             img_data = base64.b64decode(icon_data[22:])
