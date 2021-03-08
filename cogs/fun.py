@@ -48,20 +48,22 @@ class Fun(commands.Cog):
         except MCTimeout:
             return await ctx.send("Server connection timed out.")
 
-        img_data = base64.b64decode(icon_data[22:])
-        img = Image.open(io.BytesIO(img_data))
-
-        rgb = avg_image_colour.average(img)
-        rgb = [int(x) for x in rgb]
-
-        buffer = io.BytesIO()
-        img.save(buffer, "png")
-        buffer.seek(0)
-        file = discord.File(buffer, filename="image.png")
-
         e = discord.Embed.from_dict(data)
-        e.colour = discord.Colour.from_rgb(*rgb)
-        e.set_thumbnail(url="attachment://image.png")
+        
+        file = None
+        if icon_data:
+            img_data = base64.b64decode(icon_data[22:])
+            img = Image.open(io.BytesIO(img_data))
+
+            rgb = avg_image_colour.average(img)
+            rgb = [int(x) for x in rgb]
+
+            buffer = io.BytesIO()
+            img.save(buffer, "png")
+            buffer.seek(0)
+            file = discord.File(buffer, filename="image.png")
+            e.colour = discord.Colour.from_rgb(*rgb)
+            e.set_thumbnail(url="attachment://image.png")
 
         await ctx.send(embed=e, file=file)
 
